@@ -5,13 +5,15 @@ import cookieParser from 'cookie-parser';
 import { authRouter } from './routes/auth.routes';
 import { projectsRouter } from './routes/projects.routes';
 import { errorHandler } from './middleware/errorHandler';
+import { getConfig } from './config';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const config = getConfig();
+const PORT = config.PORT;
 
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:4200',
+  origin: config.CLIENT_URL,
   credentials: true,
 }));
 app.use(express.json());

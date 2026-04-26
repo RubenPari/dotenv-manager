@@ -1,23 +1,16 @@
-import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../prisma/client';
 import { AppError } from '../middleware/errorHandler';
+import { getConfig } from '../config';
+import { LoginRequestSchema, RegisterRequestSchema } from '@dotenv-manager/shared';
 
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
+const config = getConfig();
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = registerSchema.parse(req.body);
+    const { email, password } = RegisterRequestSchema.parse(req.body);
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -53,7 +46,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
+    const { email, password } = LoginRequestSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -120,10 +113,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
       throw new AppError(401, 'Invalid or expired refresh token');
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.REFRESH_TOKEN_SECRET!
-    ) as { userId: string };
+    const decoded = jwt.verify(token, config.REFRESH_TOKEN_SECRET) as { userId: string };
 
     await prisma.refreshToken.delete({ where: { token } });
 
@@ -147,13 +137,13 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 };
 
 function generateAccessToken(userId: string): string {
-  return jwt.sign({ userId }, process.env.JWT_SECRET!, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+  return jwt.sign({ userId }, config.JWT_SECRET, {
+    expiresIn: config.JWT_EXPIRES_IN,
   } as jwt.SignOptions);
 }
 
 function generateRefreshToken(userId: string): string {
-  return jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET!, {
+  return jwt.sign({ userId }, config.REFRESH_TOKEN_SECRET, {
     expiresIn: '30d',
   } as jwt.SignOptions);
 }
@@ -161,7 +151,7 @@ function generateRefreshToken(userId: string): string {
 function setRefreshTokenCookie(res: Response, token: string): void {
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: config.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });

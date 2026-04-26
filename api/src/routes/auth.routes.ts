@@ -2,10 +2,13 @@ import { Router } from 'express';
 import { register, login, logout, refresh } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { rateLimit } from 'express-rate-limit';
+import { getConfig } from '../config';
+
+const config = getConfig();
 
 const authLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
-  max: parseInt(process.env.RATE_LIMIT_MAX || '10'),
+  windowMs: config.RATE_LIMIT_WINDOW_MS,
+  max: config.RATE_LIMIT_MAX,
   message: 'Too many authentication attempts, please try again later.',
 });
 

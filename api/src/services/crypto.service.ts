@@ -1,6 +1,7 @@
 import crypto from 'crypto';
+import { getConfig } from '../config';
 
-const PEPPER = process.env.MASTER_KEY_PEPPER || 'default-pepper-change-in-production';
+const config = getConfig();
 
 interface EncryptedPayload {
   iv: string;
@@ -45,5 +46,12 @@ export function decryptVariable(encrypted: string): string {
 }
 
 function deriveKey(): Buffer {
-  return crypto.pbkdf2Sync(PEPPER, 'dotenv-manager-salt', 310000, 32, 'sha256');
+  if (!config.MASTER_KEY_PEPPER) {
+    if (config.NODE_ENV === 'production') {
+      throw new Error('MASTER_KEY_PEPPER is required in production');
+    }
+  }
+
+  const pepper = config.MASTER_KEY_PEPPER || 'dev-only-pepper';
+  return crypto.pbkdf2Sync(pepper, 'dotenv-manager-salt', 310000, 32, 'sha256');
 }
