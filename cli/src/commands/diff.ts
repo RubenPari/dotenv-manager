@@ -1,21 +1,19 @@
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
-import { readLocalConfig } from '../config';
+import { requireLocalConfig } from '../utils/requireLocalConfig';
+import { getErrorMessage } from '../utils/errors';
+import type { DiffEntry } from '@dotenv-manager/shared';
 
 export async function diffAction(env1: string, env2: string): Promise<void> {
-  const localConfig = readLocalConfig();
-  if (!localConfig) {
-    console.log(chalk.red('Not initialized. Run `dm init` first.'));
-    process.exit(1);
-  }
+  const localConfig = requireLocalConfig();
 
   const spinner = ora('Comparing environments...').start();
 
   try {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data: diff } = await api.get(
+    const { data: diff } = await api.get<DiffEntry[]>(
       `/api/v1/projects/${projectId}/envs/${env1}/diff/${env2}`
     );
 
@@ -47,8 +45,8 @@ export async function diffAction(env1: string, env2: string): Promise<void> {
       console.log(`  ${key}${v1}${v2}`);
     }
     console.log();
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to diff'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to diff')));
     process.exit(1);
   }
 }

@@ -1,21 +1,21 @@
 import axios, { AxiosInstance } from 'axios';
 import { readCredentials } from '../config';
+import type { Project } from '@dotenv-manager/shared';
 
 let apiClient: AxiosInstance | null = null;
 
 export function getApiClient(): AxiosInstance {
   if (apiClient) return apiClient;
 
-  const config = readCredentials();
-
   apiClient = axios.create({
-    baseURL: config.apiUrl,
+    baseURL: readCredentials().apiUrl,
     headers: {
       'Content-Type': 'application/json',
     },
   });
 
   apiClient.interceptors.request.use((reqConfig) => {
+    const config = readCredentials();
     if (config.accessToken) {
       reqConfig.headers.Authorization = `Bearer ${config.accessToken}`;
     }
@@ -45,8 +45,8 @@ export function getPublicClient(): AxiosInstance {
 
 export async function getProjectIdBySlug(slug: string): Promise<string> {
   const api = getApiClient();
-  const { data: projects } = await api.get('/api/v1/projects');
-  const project = projects.find((p: any) => p.slug === slug);
+  const { data: projects } = await api.get<Project[]>('/api/v1/projects');
+  const project = projects.find((p) => p.slug === slug);
   
   if (!project) {
     throw new Error(`Project "${slug}" not found`);

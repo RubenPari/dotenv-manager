@@ -1,14 +1,13 @@
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
-import { readLocalConfig } from '../config';
+import { requireLocalConfig } from '../utils/requireLocalConfig';
+import { getErrorMessage } from '../utils/errors';
+
+type AuditLog = { action: string; key: string; createdAt: string };
 
 export async function historyAction(opts: { limit?: string }): Promise<void> {
-  const localConfig = readLocalConfig();
-  if (!localConfig) {
-    console.log(chalk.red('Not initialized. Run `dm init` first.'));
-    process.exit(1);
-  }
+  const localConfig = requireLocalConfig();
 
   const spinner = ora('Loading history...').start();
   const limit = parseInt(opts.limit || '20');
@@ -16,7 +15,7 @@ export async function historyAction(opts: { limit?: string }): Promise<void> {
   try {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data: logs } = await api.get(
+    const { data: logs } = await api.get<AuditLog[]>(
       `/api/v1/projects/${projectId}/envs/dev/history`,
       { params: { limit } }
     );
@@ -36,8 +35,8 @@ export async function historyAction(opts: { limit?: string }): Promise<void> {
       console.log(`  ${action} ${date.padEnd(25)} ${log.key}`);
     }
     console.log();
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to load history'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to load history')));
     process.exit(1);
   }
 }

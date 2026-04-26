@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { loginAction } from './commands/login';
 import { initAction } from './commands/init';
 import { envListAction, envUseAction } from './commands/env';

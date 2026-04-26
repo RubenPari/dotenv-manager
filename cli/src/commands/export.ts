@@ -2,14 +2,11 @@ import fs from 'fs';
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
-import { readLocalConfig } from '../config';
+import { requireLocalConfig } from '../utils/requireLocalConfig';
+import { getErrorMessage } from '../utils/errors';
 
 export async function exportAction(opts: { format?: string; output?: string }): Promise<void> {
-  const localConfig = readLocalConfig();
-  if (!localConfig) {
-    console.log(chalk.red('Not initialized. Run `dm init` first.'));
-    process.exit(1);
-  }
+  const localConfig = requireLocalConfig();
 
   const spinner = ora('Exporting variables...').start();
   const format = opts.format || 'env';
@@ -29,8 +26,8 @@ export async function exportAction(opts: { format?: string; output?: string }): 
       spinner.stop();
       console.log(data);
     }
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to export'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to export')));
     process.exit(1);
   }
 }

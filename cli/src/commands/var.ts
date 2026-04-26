@@ -2,15 +2,13 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
-import { readLocalConfig, getActiveEnv } from '../config';
-import { encryptValue } from '../crypto';
+import { getActiveEnv } from '../config';
+import { requireLocalConfig } from '../utils/requireLocalConfig';
+import { getErrorMessage } from '../utils/errors';
+import type { VariableResponse, VariableInput } from '@dotenv-manager/shared';
 
 export async function varAddAction(key: string): Promise<void> {
-  const localConfig = readLocalConfig();
-  if (!localConfig) {
-    console.log(chalk.red('Not initialized. Run `dm init` first.'));
-    process.exit(1);
-  }
+  const localConfig = requireLocalConfig();
 
   const { value, isSecret, description } = await inquirer.prompt([
     { type: 'password', name: 'value', message: `Value for ${key}:`, mask: '*' },
@@ -25,18 +23,18 @@ export async function varAddAction(key: string): Promise<void> {
     const env = getActiveEnv(localConfig);
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
 
-    const { data: existing } = await api.get(`/api/v1/projects/${projectId}/envs/${env}`);
+    const { data: existing } = await api.get<VariableResponse[]>(`/api/v1/projects/${projectId}/envs/${env}`);
     
-    const variables = existing.map((v: any) => ({
+    const variables: VariableInput[] = existing.map((v) => ({
       key: v.key,
       value: v.value || '',
       isSecret: v.isSecret,
       isRequired: v.isRequired,
-      description: v.description,
+      description: v.description ?? undefined,
     }));
 
-    const idx = variables.findIndex((v: any) => v.key === key);
-    const newVar = {
+    const idx = variables.findIndex((v) => v.key === key);
+    const newVar: VariableInput = {
       key,
       value: isSecret ? '' : value,
       isSecret,
@@ -53,18 +51,14 @@ export async function varAddAction(key: string): Promise<void> {
     await api.put(`/api/v1/projects/${projectId}/envs/${env}`, variables);
 
     spinner.succeed(chalk.green(`${key} added${isSecret ? ' (encrypted)' : ''}`));
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to add variable'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to add variable')));
     process.exit(1);
   }
 }
 
 export async function varGetAction(key: string): Promise<void> {
-  const localConfig = readLocalConfig();
-  if (!localConfig) {
-    console.log(chalk.red('Not initialized. Run `dm init` first.'));
-    process.exit(1);
-  }
+  const localConfig = requireLocalConfig();
 
   const spinner = ora('Fetching variable...').start();
 
@@ -73,8 +67,8 @@ export async function varGetAction(key: string): Promise<void> {
     const env = getActiveEnv(localConfig);
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
 
-    const { data: variables } = await api.get(`/api/v1/projects/${projectId}/envs/${env}`);
-    const variable = variables.find((v: any) => v.key === key);
+    const { data: variables } = await api.get<VariableResponse[]>(`/api/v1/projects/${projectId}/envs/${env}`);
+    const variable = variables.find((v) => v.key === key);
 
     if (!variable) {
       spinner.fail(chalk.red(`${key} not found`));
@@ -92,18 +86,14 @@ export async function varGetAction(key: string): Promise<void> {
     } else {
       console.log(`${key}=${variable.value}`);
     }
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to fetch variable'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to fetch variable')));
     process.exit(1);
   }
 }
 
 export async function varListAction(opts: { env?: string }): Promise<void> {
-  const localConfig = readLocalConfig();
-  if (!localConfig) {
-    console.log(chalk.red('Not initialized. Run `dm init` first.'));
-    process.exit(1);
-  }
+  const localConfig = requireLocalConfig();
 
   const spinner = ora('Loading variables...').start();
   const env = getActiveEnv(localConfig, opts.env);
@@ -111,7 +101,7 @@ export async function varListAction(opts: { env?: string }): Promise<void> {
   try {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data: variables } = await api.get(`/api/v1/projects/${projectId}/envs/${env}`);
+    const { data: variables } = await api.get<VariableResponse[]>(`/api/v1/projects/${projectId}/envs/${env}`);
 
     spinner.stop();
     if (variables.length === 0) {
@@ -129,8 +119,8 @@ export async function varListAction(opts: { env?: string }): Promise<void> {
       console.log(`  ${key}${value}`);
     }
     console.log();
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to load variables'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to load variables')));
     process.exit(1);
   }
 }

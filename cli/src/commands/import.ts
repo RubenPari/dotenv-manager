@@ -2,14 +2,11 @@ import fs from 'fs';
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
-import { readLocalConfig } from '../config';
+import { requireLocalConfig } from '../utils/requireLocalConfig';
+import { getErrorMessage } from '../utils/errors';
 
 export async function importAction(file: string): Promise<void> {
-  const localConfig = readLocalConfig();
-  if (!localConfig) {
-    console.log(chalk.red('Not initialized. Run `dm init` first.'));
-    process.exit(1);
-  }
+  const localConfig = requireLocalConfig();
 
   if (!fs.existsSync(file)) {
     console.log(chalk.red(`File not found: ${file}`));
@@ -28,8 +25,8 @@ export async function importAction(file: string): Promise<void> {
     );
 
     spinner.succeed(chalk.green(`${data.imported} variables imported`));
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to import'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to import')));
     process.exit(1);
   }
 }

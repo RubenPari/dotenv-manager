@@ -3,6 +3,8 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { getPublicClient } from '../api/client';
 import { writeCredentials } from '../config';
+import { getErrorMessage } from '../utils/errors';
+import type { LoginResponse } from '@dotenv-manager/shared';
 
 export async function loginAction(): Promise<void> {
   const { email, password } = await inquirer.prompt([
@@ -14,7 +16,7 @@ export async function loginAction(): Promise<void> {
 
   try {
     const client = getPublicClient();
-    const { data } = await client.post('/api/v1/auth/login', { email, password });
+    const { data } = await client.post<LoginResponse>('/api/v1/auth/login', { email, password });
 
     writeCredentials({
       apiUrl: client.defaults.baseURL as string,
@@ -22,8 +24,8 @@ export async function loginAction(): Promise<void> {
     });
 
     spinner.succeed(chalk.green(`Authenticated as ${email}`));
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Authentication failed'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Authentication failed')));
     process.exit(1);
   }
 }

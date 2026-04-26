@@ -3,6 +3,8 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient } from '../api/client';
 import { readLocalConfig, writeLocalConfig, readCredentials } from '../config';
+import { getErrorMessage } from '../utils/errors';
+import type { Project } from '@dotenv-manager/shared';
 
 export async function initAction(opts: { project?: string }): Promise<void> {
   const existing = readLocalConfig();
@@ -32,8 +34,8 @@ export async function initAction(opts: { project?: string }): Promise<void> {
     const api = getApiClient();
     
     // Find project by slug
-    const { data: projects } = await api.get('/api/v1/projects');
-    const project = projects.find((p: any) => p.slug === projectSlug);
+    const { data: projects } = await api.get<Project[]>('/api/v1/projects');
+    const project = projects.find((p) => p.slug === projectSlug);
 
     if (!project) {
       spinner.fail(chalk.red(`Project "${projectSlug}" not found. Create it in the Web UI first.`));
@@ -42,8 +44,8 @@ export async function initAction(opts: { project?: string }): Promise<void> {
 
     writeLocalConfig({ projectSlug: projectSlug! });
     spinner.succeed(chalk.green(`Project "${projectSlug}" linked. Environments: dev, staging, prod`));
-  } catch (error: any) {
-    spinner.fail(chalk.red(error.response?.data?.error || 'Failed to link project'));
+  } catch (error: unknown) {
+    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to link project')));
     process.exit(1);
   }
 }
