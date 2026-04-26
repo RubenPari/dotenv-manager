@@ -6,6 +6,10 @@ const config = getConfig();
 
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
+/**
+ * Get the refresh token TTL in milliseconds
+ * @returns The refresh token TTL in milliseconds
+ */
 export function refreshTokenTtlMs() {
   return REFRESH_TOKEN_TTL_MS;
 }
