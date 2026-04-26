@@ -4,7 +4,6 @@ import * as envsService from '../services/envs.service';
 import * as varsService from '../services/variables.service';
 import { AppError } from '../middleware/errorHandler';
 import { z } from 'zod';
-import prisma from '../prisma/client';
 import { getParam } from '../utils/params';
 
 export async function listEnvVariables(req: AuthRequest, res: Response, next: NextFunction) {
@@ -96,21 +95,8 @@ export async function envHistory(req: AuthRequest, res: Response, next: NextFunc
     const envName = getParam(req.params.env);
     const limit = parseInt(req.query.limit as string) || 20;
 
-    const env = await prisma.env.findFirst({
-      where: {
-        name: envName,
-        project: { id: projectId, userId: req.userId },
-      },
-      include: {
-        auditLogs: {
-          orderBy: { createdAt: 'desc' },
-          take: limit,
-        },
-      },
-    });
-
-    if (!env) throw new AppError(404, 'Environment not found');
-    res.json(env.auditLogs);
+    const history = await envsService.getEnvHistory(req.userId!, projectId, envName, limit);
+    res.json(history);
   } catch (e) {
     next(e);
   }
