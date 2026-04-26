@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
-import { catchError, Observable, tap, of, throwError } from 'rxjs';
+import { catchError, Observable, tap, of } from 'rxjs';
 
 interface LoginResponse {
   accessToken: string;
