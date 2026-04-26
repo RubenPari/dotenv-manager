@@ -1,5 +1,13 @@
+/**
+ * Project/environment/variable schemas
+ * @module shared/schemas/projects
+ * @description Zod schemas and TS types for project, environment, and variable API contracts.
+ */
 import { z } from 'zod';
 
+/**
+ * Project entity (as returned by the API).
+ */
 export const ProjectSchema = z.object({
   id: z.string(),
   userId: z.string().optional(),
@@ -17,6 +25,9 @@ export const ProjectSchema = z.object({
   ),
 });
 
+/**
+ * Request body for project creation.
+ */
 export const CreateProjectRequestSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
@@ -24,16 +35,25 @@ export const CreateProjectRequestSchema = z.object({
 
 export const UpdateProjectRequestSchema = CreateProjectRequestSchema;
 
+/**
+ * Environment entity.
+ */
 export const EnvSchema = z.object({
   id: z.string(),
   projectId: z.string(),
   name: z.string(),
 });
 
+/**
+ * Request body for environment creation.
+ */
 export const CreateEnvRequestSchema = z.object({
   name: z.string().min(1).max(50),
 });
 
+/**
+ * Variable input payload used for upsert operations.
+ */
 export const VariableInputSchema = z.object({
   key: z.string().min(1).max(200),
   value: z.string().optional(),
@@ -42,6 +62,9 @@ export const VariableInputSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
+/**
+ * Variable response payload returned by the API.
+ */
 export const VariableResponseSchema = z.object({
   id: z.string(),
   key: z.string(),
@@ -51,6 +74,9 @@ export const VariableResponseSchema = z.object({
   description: z.string().nullable().optional(),
 });
 
+/**
+ * Single entry in an environment diff response.
+ */
 export const DiffEntrySchema = z.object({
   key: z.string(),
   status: z.enum(['added', 'removed', 'modified', 'unchanged']),

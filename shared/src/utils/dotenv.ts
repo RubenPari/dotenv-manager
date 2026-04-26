@@ -1,3 +1,8 @@
+/**
+ * Dotenv parsing/types
+ * @module shared/utils/dotenv
+ * @description Shared helpers and types for working with `.env`-style key/value files.
+ */
 export type DotenvKeyValues = Record<string, string>;
 
 /**
@@ -25,6 +30,9 @@ export function parseDotenv(content: string): DotenvKeyValues {
   return out;
 }
 
+/**
+ * A normalized variable entry used across packages (CLI/API/web).
+ */
 export interface DotenvVariableEntry {
   key: string;
   value: string;
