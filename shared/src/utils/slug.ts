@@ -6,4 +6,3 @@ export function generateSlug(name: string): string {
       .replace(/(^-|-$)/g, '') || `project-${Date.now()}`
   );
 }
-

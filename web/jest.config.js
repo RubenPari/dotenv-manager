@@ -4,5 +4,5 @@ module.exports = {
   testMatch: ['**/*.spec.ts'],
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov']
+  coverageReporters: ['text', 'lcov'],
 };

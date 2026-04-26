@@ -19,24 +19,24 @@ export class AuthService {
 
   constructor(
     private api: ApiService,
-    private router: Router
+    private router: Router,
   ) {}
 
   login(email: string, password: string): Observable<LoginResponse> {
     return this.api.post<LoginResponse>('/auth/login', { email, password }).pipe(
-      tap(res => {
+      tap((res) => {
         localStorage.setItem('token', res.accessToken);
         this.user = res.user;
-      })
+      }),
     );
   }
 
   register(email: string, password: string): Observable<LoginResponse> {
     return this.api.post<LoginResponse>('/auth/register', { email, password }).pipe(
-      tap(res => {
+      tap((res) => {
         localStorage.setItem('token', res.accessToken);
         this.user = res.user;
-      })
+      }),
     );
   }
 
@@ -52,7 +52,7 @@ export class AuthService {
         this.user = null;
         this.router.navigate(['/login']);
         return of(undefined);
-      })
+      }),
     );
   }
 

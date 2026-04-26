@@ -8,12 +8,12 @@ import { API_BASE_URL } from '../../tokens';
   selector: 'app-settings',
   standalone: true,
   imports: [RouterLink],
-  templateUrl: './settings.component.html'
+  templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
   constructor(
     private authService: AuthService,
-    @Inject(API_BASE_URL) public apiBaseUrl: string
+    @Inject(API_BASE_URL) public apiBaseUrl: string,
   ) {}
 
   logout() {

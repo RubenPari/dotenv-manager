@@ -29,4 +29,3 @@ export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 export type AuthUser = z.infer<typeof AuthUserSchema>;
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export type RefreshResponse = z.infer<typeof RefreshResponseSchema>;
-

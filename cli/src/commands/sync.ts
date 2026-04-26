@@ -22,7 +22,7 @@ export async function pushAction(opts: { env?: string }): Promise<void> {
   try {
     const envConfig = parseDotenv(fs.readFileSync(envFile, 'utf-8'));
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    
+
     const variables: VariableInput[] = Object.entries(envConfig).map(([key, value]) => ({
       key,
       value,
@@ -34,8 +34,10 @@ export async function pushAction(opts: { env?: string }): Promise<void> {
     const api = getApiClient();
     await api.put(`/api/v1/projects/${projectId}/envs/${env}`, variables);
 
-    const secrets = variables.filter(v => v.isSecret).length;
-    spinner.succeed(chalk.green(`${variables.length} variables synchronized (${secrets} encrypted)`));
+    const secrets = variables.filter((v) => v.isSecret).length;
+    spinner.succeed(
+      chalk.green(`${variables.length} variables synchronized (${secrets} encrypted)`),
+    );
   } catch (error: unknown) {
     spinner.fail(chalk.red(getErrorMessage(error, 'Failed to sync')));
     process.exit(1);
@@ -51,11 +53,11 @@ export async function pullAction(opts: { env?: string }): Promise<void> {
   try {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data: variables } = await api.get<VariableResponse[]>(`/api/v1/projects/${projectId}/envs/${env}`);
+    const { data: variables } = await api.get<VariableResponse[]>(
+      `/api/v1/projects/${projectId}/envs/${env}`,
+    );
 
-    const content = variables
-      .map((v) => `${v.key}=${v.value || ''}`)
-      .join('\n');
+    const content = variables.map((v) => `${v.key}=${v.value || ''}`).join('\n');
 
     fs.writeFileSync('.env', content + '\n');
 

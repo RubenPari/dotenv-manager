@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-register',
   standalone: true,
   imports: [FormsModule, RouterLink],
-  templateUrl: './register.component.html'
+  templateUrl: './register.component.html',
 })
 export class RegisterComponent {
   email = '';
@@ -18,7 +18,7 @@ export class RegisterComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   onSubmit() {
@@ -45,7 +45,7 @@ export class RegisterComponent {
       error: (err) => {
         this.loading = false;
         this.error = err.error?.message || 'Registration failed';
-      }
+      },
     });
   }
 }

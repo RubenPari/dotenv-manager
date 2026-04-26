@@ -9,7 +9,7 @@ interface EncryptedPayload {
 export function encryptValue(value: string, key: string): string {
   const iv = crypto.randomBytes(12);
   const derivedKey = deriveKey(key);
-  
+
   const cipher = crypto.createCipheriv('aes-256-gcm', derivedKey, iv);
   const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
   const authTag = cipher.getAuthTag();
@@ -26,14 +26,14 @@ export function encryptValue(value: string, key: string): string {
 export function decryptValue(encrypted: string, key: string): string {
   const payload: EncryptedPayload = JSON.parse(encrypted);
   const derivedKey = deriveKey(key);
-  
+
   const decipher = crypto.createDecipheriv(
     'aes-256-gcm',
     derivedKey,
-    Buffer.from(payload.iv, 'base64')
+    Buffer.from(payload.iv, 'base64'),
   );
   decipher.setAuthTag(Buffer.from(payload.authTag, 'base64'));
-  
+
   const decrypted = Buffer.concat([
     decipher.update(Buffer.from(payload.ciphertext, 'base64')),
     decipher.final(),

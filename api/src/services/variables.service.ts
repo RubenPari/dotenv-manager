@@ -16,7 +16,14 @@ export function parseVariableInputs(body: unknown) {
   return z.array(variableSchema).parse(body);
 }
 
-export function toVariableResponse(v: { id: string; key: string; value: string | null; isSecret: boolean; isRequired: boolean; description: string | null }) {
+export function toVariableResponse(v: {
+  id: string;
+  key: string;
+  value: string | null;
+  isSecret: boolean;
+  isRequired: boolean;
+  description: string | null;
+}) {
   return {
     id: v.id,
     key: v.key,
@@ -27,7 +34,11 @@ export function toVariableResponse(v: { id: string; key: string; value: string |
   };
 }
 
-export async function upsertEnvVariables(params: { envId: string; userId: string; variables: Array<z.infer<typeof variableSchema>> }) {
+export async function upsertEnvVariables(params: {
+  envId: string;
+  userId: string;
+  variables: Array<z.infer<typeof variableSchema>>;
+}) {
   const newKeys = new Set(params.variables.map((v) => v.key));
 
   return prisma.$transaction(async (tx) => {
@@ -97,7 +108,7 @@ export async function exportEnv(params: { envId: string; format: ExportFormat })
     env.variables.map(async (v) => ({
       key: v.key,
       value: v.isSecret && v.valueEncrypted ? decryptVariable(v.valueEncrypted) : v.value || '',
-    }))
+    })),
   );
 
   return formatExport(variables, params.format);
@@ -124,9 +135,19 @@ export async function diffEnvs(params: { envId1: string; envId2: string }) {
     } else if (!v2) {
       diff.push({ key, status: 'removed', env1: v1.value || '[secret]', env2: undefined });
     } else if (v1.value !== v2.value || v1.valueEncrypted !== v2.valueEncrypted) {
-      diff.push({ key, status: 'modified', env1: v1.value || '[secret]', env2: v2.value || '[secret]' });
+      diff.push({
+        key,
+        status: 'modified',
+        env1: v1.value || '[secret]',
+        env2: v2.value || '[secret]',
+      });
     } else {
-      diff.push({ key, status: 'unchanged', env1: v1.value || '[secret]', env2: v2.value || '[secret]' });
+      diff.push({
+        key,
+        status: 'unchanged',
+        env1: v1.value || '[secret]',
+        env2: v2.value || '[secret]',
+      });
     }
   }
 
@@ -164,4 +185,3 @@ export async function importEnvContent(params: { envId: string; userId: string; 
 
   return { imported: variables.length };
 }
-

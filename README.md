@@ -89,4 +89,3 @@ npm run dev --workspace=web
 ## Docs
 
 - Requirements / functional spec: `REQUISITI.md`
-

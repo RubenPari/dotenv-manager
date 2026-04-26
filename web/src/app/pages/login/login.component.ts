@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   standalone: true,
   imports: [FormsModule, RouterLink],
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
 })
 export class LoginComponent {
   email = '';
@@ -17,7 +17,7 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   onSubmit() {
@@ -34,7 +34,7 @@ export class LoginComponent {
       error: (err) => {
         this.loading = false;
         this.error = err.error?.message || 'Login failed';
-      }
+      },
     });
   }
 }

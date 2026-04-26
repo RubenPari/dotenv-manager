@@ -4,7 +4,7 @@ export async function createAuditLog(
   envId: string,
   action: string,
   key: string,
-  actorId: string
+  actorId: string,
 ): Promise<void> {
   await prisma.auditLog.create({
     data: {

@@ -32,4 +32,3 @@ export function getConfig(): Env {
   cached = parsed.data;
   return cached;
 }
-

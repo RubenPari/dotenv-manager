@@ -17,7 +17,7 @@ export async function historyAction(opts: { limit?: string }): Promise<void> {
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
     const { data: logs } = await api.get<AuditLog[]>(
       `/api/v1/projects/${projectId}/envs/dev/history`,
-      { params: { limit } }
+      { params: { limit } },
     );
 
     spinner.stop();
@@ -28,9 +28,12 @@ export async function historyAction(opts: { limit?: string }): Promise<void> {
 
     console.log(chalk.bold('\nRecent changes:\n'));
     for (const log of logs) {
-      const action = log.action === 'CREATE' ? chalk.green('+') :
-                     log.action === 'DELETE' ? chalk.red('-') :
-                     chalk.yellow('~');
+      const action =
+        log.action === 'CREATE'
+          ? chalk.green('+')
+          : log.action === 'DELETE'
+            ? chalk.red('-')
+            : chalk.yellow('~');
       const date = new Date(log.createdAt).toLocaleString();
       console.log(`  ${action} ${date.padEnd(25)} ${log.key}`);
     }

@@ -9,11 +9,11 @@ services:
       POSTGRES_PASSWORD: dotenv_password
       POSTGRES_DB: dotenv_manager
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dotenv_user -d dotenv_manager"]
+      test: ['CMD-SHELL', 'pg_isready -U dotenv_user -d dotenv_manager']
       interval: 10s
       timeout: 5s
       retries: 5

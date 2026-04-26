@@ -19,4 +19,3 @@ export function formatExport(entries: ExportEntry[], format: ExportFormat): stri
     }
   }
 }
-

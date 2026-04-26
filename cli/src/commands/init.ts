@@ -23,7 +23,12 @@ export async function initAction(opts: { project?: string }): Promise<void> {
 
   if (!projectSlug) {
     const { slug } = await inquirer.prompt([
-      { type: 'input', name: 'slug', message: 'Project slug:', validate: (v: string) => v.length > 0 || 'Required' },
+      {
+        type: 'input',
+        name: 'slug',
+        message: 'Project slug:',
+        validate: (v: string) => v.length > 0 || 'Required',
+      },
     ]);
     projectSlug = slug;
   }
@@ -32,7 +37,7 @@ export async function initAction(opts: { project?: string }): Promise<void> {
 
   try {
     const api = getApiClient();
-    
+
     // Find project by slug
     const { data: projects } = await api.get<Project[]>('/api/v1/projects');
     const project = projects.find((p) => p.slug === projectSlug);
@@ -43,7 +48,9 @@ export async function initAction(opts: { project?: string }): Promise<void> {
     }
 
     writeLocalConfig({ projectSlug: projectSlug! });
-    spinner.succeed(chalk.green(`Project "${projectSlug}" linked. Environments: dev, staging, prod`));
+    spinner.succeed(
+      chalk.green(`Project "${projectSlug}" linked. Environments: dev, staging, prod`),
+    );
   } catch (error: unknown) {
     spinner.fail(chalk.red(getErrorMessage(error, 'Failed to link project')));
     process.exit(1);

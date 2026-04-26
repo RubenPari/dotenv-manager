@@ -32,4 +32,3 @@ export interface DotenvVariableEntry {
   isRequired: boolean;
   description?: string;
 }
-

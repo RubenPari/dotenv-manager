@@ -14,10 +14,9 @@ export async function exportAction(opts: { format?: string; output?: string }): 
   try {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data } = await api.get(
-      `/api/v1/projects/${projectId}/envs/dev/export`,
-      { params: { format } }
-    );
+    const { data } = await api.get(`/api/v1/projects/${projectId}/envs/dev/export`, {
+      params: { format },
+    });
 
     if (opts.output) {
       fs.writeFileSync(opts.output, data);

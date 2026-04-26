@@ -23,8 +23,10 @@ export async function varAddAction(key: string): Promise<void> {
     const env = getActiveEnv(localConfig);
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
 
-    const { data: existing } = await api.get<VariableResponse[]>(`/api/v1/projects/${projectId}/envs/${env}`);
-    
+    const { data: existing } = await api.get<VariableResponse[]>(
+      `/api/v1/projects/${projectId}/envs/${env}`,
+    );
+
     const variables: VariableInput[] = existing.map((v) => ({
       key: v.key,
       value: v.value || '',
@@ -67,7 +69,9 @@ export async function varGetAction(key: string): Promise<void> {
     const env = getActiveEnv(localConfig);
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
 
-    const { data: variables } = await api.get<VariableResponse[]>(`/api/v1/projects/${projectId}/envs/${env}`);
+    const { data: variables } = await api.get<VariableResponse[]>(
+      `/api/v1/projects/${projectId}/envs/${env}`,
+    );
     const variable = variables.find((v) => v.key === key);
 
     if (!variable) {
@@ -78,7 +82,12 @@ export async function varGetAction(key: string): Promise<void> {
     spinner.stop();
     if (variable.isSecret) {
       const { show } = await inquirer.prompt([
-        { type: 'confirm', name: 'show', message: `${key} is a secret. Show value?`, default: false },
+        {
+          type: 'confirm',
+          name: 'show',
+          message: `${key} is a secret. Show value?`,
+          default: false,
+        },
       ]);
       if (show) {
         console.log(`${key}=${variable.value || '[stored encrypted]'}`);
@@ -101,7 +110,9 @@ export async function varListAction(opts: { env?: string }): Promise<void> {
   try {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data: variables } = await api.get<VariableResponse[]>(`/api/v1/projects/${projectId}/envs/${env}`);
+    const { data: variables } = await api.get<VariableResponse[]>(
+      `/api/v1/projects/${projectId}/envs/${env}`,
+    );
 
     spinner.stop();
     if (variables.length === 0) {
@@ -112,7 +123,7 @@ export async function varListAction(opts: { env?: string }): Promise<void> {
     console.log(chalk.bold(`\nVariables (${env}):\n`));
     console.log(chalk.gray('  KEY'.padEnd(30) + 'VALUE'.padEnd(40) + 'SECRET'));
     console.log('  ' + '-'.repeat(70));
-    
+
     for (const v of variables) {
       const key = v.key.padEnd(30);
       const value = v.isSecret ? '[secret] ✓' : (v.value || '').substring(0, 39).padEnd(40);

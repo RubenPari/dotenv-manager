@@ -12,5 +12,5 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([jwtInterceptor])),
     { provide: API_BASE_URL, useValue: environment.apiBaseUrl },
-  ]
+  ],
 };

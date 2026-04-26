@@ -35,4 +35,3 @@ export async function deleteEnv(req: AuthRequest, res: Response, next: NextFunct
     next(e);
   }
 }
-

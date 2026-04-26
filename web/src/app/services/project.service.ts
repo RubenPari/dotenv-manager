@@ -1,7 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Project, Environment, Variable, DiffEntry, AuditLog, CreateProjectDto, CreateEnvDto, VariableDto } from '../models';
+import {
+  Project,
+  Environment,
+  Variable,
+  DiffEntry,
+  AuditLog,
+  CreateProjectDto,
+  CreateEnvDto,
+  VariableDto,
+} from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
@@ -43,11 +52,19 @@ export class ProjectService {
     return this.api.get<Variable[]>(`/projects/${projectId}/envs/${envName}`);
   }
 
-  updateVariables(projectId: string, envName: string, variables: VariableDto[]): Observable<Variable[]> {
+  updateVariables(
+    projectId: string,
+    envName: string,
+    variables: VariableDto[],
+  ): Observable<Variable[]> {
     return this.api.put<Variable[]>(`/projects/${projectId}/envs/${envName}`, variables);
   }
 
-  exportEnvironment(projectId: string, envName: string, format: string = 'env'): Observable<string> {
+  exportEnvironment(
+    projectId: string,
+    envName: string,
+    format: string = 'env',
+  ): Observable<string> {
     return this.api.get<string>(`/projects/${projectId}/envs/${envName}/export`, { format });
   }
 
@@ -55,11 +72,19 @@ export class ProjectService {
     return this.api.get<DiffEntry[]>(`/projects/${projectId}/envs/${env1}/diff/${env2}`);
   }
 
-  importEnvironment(projectId: string, envName: string, content: string): Observable<{ imported: number }> {
-    return this.api.post<{ imported: number }>(`/projects/${projectId}/envs/${envName}/import`, { content });
+  importEnvironment(
+    projectId: string,
+    envName: string,
+    content: string,
+  ): Observable<{ imported: number }> {
+    return this.api.post<{ imported: number }>(`/projects/${projectId}/envs/${envName}/import`, {
+      content,
+    });
   }
 
   getHistory(projectId: string, envName: string, limit: number = 20): Observable<AuditLog[]> {
-    return this.api.get<AuditLog[]>(`/projects/${projectId}/envs/${envName}/history`, { limit: String(limit) });
+    return this.api.get<AuditLog[]>(`/projects/${projectId}/envs/${envName}/history`, {
+      limit: String(limit),
+    });
   }
 }

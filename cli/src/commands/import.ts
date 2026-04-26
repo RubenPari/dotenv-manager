@@ -19,10 +19,7 @@ export async function importAction(file: string): Promise<void> {
   try {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data } = await api.post(
-      `/api/v1/projects/${projectId}/envs/dev/import`,
-      { content }
-    );
+    const { data } = await api.post(`/api/v1/projects/${projectId}/envs/dev/import`, { content });
 
     spinner.succeed(chalk.green(`${data.imported} variables imported`));
   } catch (error: unknown) {

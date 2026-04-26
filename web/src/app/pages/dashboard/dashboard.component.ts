@@ -10,7 +10,7 @@ import { Project, CreateProjectDto } from '../../models';
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
-  templateUrl: './dashboard.component.html'
+  templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
   projects: Project[] = [];
@@ -22,7 +22,7 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private projectService: ProjectService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   ngOnInit() {
@@ -38,7 +38,7 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -50,7 +50,7 @@ export class DashboardComponent implements OnInit {
 
     const data: CreateProjectDto = {
       name: this.newName.trim(),
-      description: this.newDescription.trim() || undefined
+      description: this.newDescription.trim() || undefined,
     };
 
     this.projectService.createProject(data).subscribe({
@@ -63,12 +63,14 @@ export class DashboardComponent implements OnInit {
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to create project';
-      }
+      },
     });
   }
 
   deleteProject(project: Project) {
-    if (!confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone.`)) {
+    if (
+      !confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone.`)
+    ) {
       return;
     }
 
@@ -76,7 +78,7 @@ export class DashboardComponent implements OnInit {
       next: () => this.loadProjects(),
       error: (err) => {
         this.error = err.error?.message || 'Failed to delete project';
-      }
+      },
     });
   }
 

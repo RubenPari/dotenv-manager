@@ -15,7 +15,10 @@ export async function getUserProjects(userId: string) {
   });
 }
 
-export async function createProject(userId: string, data: { name: string; slug: string; description?: string }) {
+export async function createProject(
+  userId: string,
+  data: { name: string; slug: string; description?: string },
+) {
   const existing = await prisma.project.findUnique({ where: { slug: data.slug } });
   if (existing) throw new AppError(409, 'Project with this name already exists');
 
@@ -44,13 +47,19 @@ export async function getProjectById(userId: string, projectId: string) {
   return project;
 }
 
-export async function updateProject(userId: string, projectId: string, data: { name: string; description?: string }) {
+export async function updateProject(
+  userId: string,
+  projectId: string,
+  data: { name: string; description?: string },
+) {
   await getProjectById(userId, projectId);
-  return prisma.project.update({ where: { id: projectId }, data: { name: data.name, description: data.description } });
+  return prisma.project.update({
+    where: { id: projectId },
+    data: { name: data.name, description: data.description },
+  });
 }
 
 export async function deleteProject(userId: string, projectId: string) {
   await getProjectById(userId, projectId);
   await prisma.project.delete({ where: { id: projectId } });
 }
-

@@ -13,7 +13,7 @@ export const ProjectSchema = z.object({
       id: z.string(),
       name: z.string(),
       _count: z.object({ variables: z.number().int().nonnegative() }).optional(),
-    })
+    }),
   ),
 });
 
@@ -66,4 +66,3 @@ export type CreateEnvRequest = z.infer<typeof CreateEnvRequestSchema>;
 export type VariableInput = z.infer<typeof VariableInputSchema>;
 export type VariableResponse = z.infer<typeof VariableResponseSchema>;
 export type DiffEntry = z.infer<typeof DiffEntrySchema>;
-

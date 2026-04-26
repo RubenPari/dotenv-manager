@@ -9,7 +9,7 @@ import { Project, Environment, Variable, VariableDto, DiffEntry, AuditLog } from
   selector: 'app-project-editor',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './project-editor.component.html'
+  templateUrl: './project-editor.component.html',
 })
 export class ProjectEditorComponent implements OnInit {
   project: Project | null = null;
@@ -25,14 +25,20 @@ export class ProjectEditorComponent implements OnInit {
   diffEnv2 = '';
   diffResults: DiffEntry[] = [];
   history: AuditLog[] = [];
-  newVar: Partial<VariableDto> = { key: '', value: '', isSecret: false, isRequired: false, description: '' };
+  newVar: Partial<VariableDto> = {
+    key: '',
+    value: '',
+    isSecret: false,
+    isRequired: false,
+    description: '',
+  };
   showSecretValues = new Set<string>();
   newEnvName = '';
   showAddEnv = false;
 
   constructor(
     private route: ActivatedRoute,
-    private projectService: ProjectService
+    private projectService: ProjectService,
   ) {}
 
   ngOnInit() {
@@ -46,7 +52,7 @@ export class ProjectEditorComponent implements OnInit {
     this.loading = true;
     this.projectService.getProjects().subscribe({
       next: (projects) => {
-        const project = projects.find(p => p.slug === slug);
+        const project = projects.find((p) => p.slug === slug);
         if (!project) {
           this.error = 'Project not found';
           this.loading = false;
@@ -64,7 +70,7 @@ export class ProjectEditorComponent implements OnInit {
       error: () => {
         this.loading = false;
         this.error = 'Failed to load project';
-      }
+      },
     });
   }
 
@@ -80,7 +86,7 @@ export class ProjectEditorComponent implements OnInit {
       error: () => {
         this.loading = false;
         this.error = 'Failed to load variables';
-      }
+      },
     });
   }
 
@@ -105,16 +111,19 @@ export class ProjectEditorComponent implements OnInit {
       value: this.newVar.value,
       isSecret: this.newVar.isSecret || false,
       isRequired: this.newVar.isRequired || false,
-      description: this.newVar.description
+      description: this.newVar.description,
     };
 
-    const updatedVars = [...this.variables.map(v => ({
-      key: v.key,
-      value: v.isSecret ? undefined : v.value || undefined,
-      isSecret: v.isSecret,
-      isRequired: v.isRequired,
-      description: v.description
-    })), varDto];
+    const updatedVars = [
+      ...this.variables.map((v) => ({
+        key: v.key,
+        value: v.isSecret ? undefined : v.value || undefined,
+        isSecret: v.isSecret,
+        isRequired: v.isRequired,
+        description: v.description,
+      })),
+      varDto,
+    ];
 
     this.projectService.updateVariables(this.project.id, this.activeEnv, updatedVars).subscribe({
       next: () => {
@@ -124,7 +133,7 @@ export class ProjectEditorComponent implements OnInit {
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to add variable';
-      }
+      },
     });
   }
 
@@ -132,39 +141,39 @@ export class ProjectEditorComponent implements OnInit {
     if (!this.project || !this.activeEnv) return;
 
     const updatedVars = this.variables
-      .filter(v => v.key !== variable.key)
-      .map(v => ({
+      .filter((v) => v.key !== variable.key)
+      .map((v) => ({
         key: v.key,
         value: v.isSecret ? undefined : v.value || undefined,
         isSecret: v.isSecret,
         isRequired: v.isRequired,
-        description: v.description
+        description: v.description,
       }));
 
     this.projectService.updateVariables(this.project.id, this.activeEnv, updatedVars).subscribe({
       next: () => this.loadVariables(),
       error: (err) => {
         this.error = err.error?.message || 'Failed to delete variable';
-      }
+      },
     });
   }
 
   updateVariableValue(variable: Variable) {
     if (!this.project || !this.activeEnv) return;
 
-    const updatedVars = this.variables.map(v => ({
+    const updatedVars = this.variables.map((v) => ({
       key: v.key,
-      value: v.key === variable.key ? v.value : (v.isSecret ? undefined : v.value || undefined),
+      value: v.key === variable.key ? v.value : v.isSecret ? undefined : v.value || undefined,
       isSecret: v.isSecret,
       isRequired: v.isRequired,
-      description: v.description
+      description: v.description,
     }));
 
     this.projectService.updateVariables(this.project.id, this.activeEnv, updatedVars).subscribe({
       next: () => {},
       error: (err) => {
         this.error = err.error?.message || 'Failed to update variable';
-      }
+      },
     });
   }
 
@@ -178,7 +187,7 @@ export class ProjectEditorComponent implements OnInit {
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to diff environments';
-      }
+      },
     });
   }
 
@@ -192,38 +201,44 @@ export class ProjectEditorComponent implements OnInit {
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to load history';
-      }
+      },
     });
   }
 
   addEnvironment() {
     if (!this.project || !this.newEnvName.trim()) return;
 
-    this.projectService.createEnvironment(this.project.id, { name: this.newEnvName.trim() }).subscribe({
-      next: (env) => {
-        this.environments.push(env);
-        this.showAddEnv = false;
-        this.newEnvName = '';
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Failed to create environment';
-      }
-    });
+    this.projectService
+      .createEnvironment(this.project.id, { name: this.newEnvName.trim() })
+      .subscribe({
+        next: (env) => {
+          this.environments.push(env);
+          this.showAddEnv = false;
+          this.newEnvName = '';
+        },
+        error: (err) => {
+          this.error = err.error?.message || 'Failed to create environment';
+        },
+      });
   }
 
   getDisplayValue(variable: Variable): string {
     if (!variable.isSecret) {
       return variable.value || '';
     }
-    return this.showSecretValues.has(variable.id) ? (variable.value || '[encrypted]') : '••••••••';
+    return this.showSecretValues.has(variable.id) ? variable.value || '[encrypted]' : '••••••••';
   }
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'added': return 'text-green-600';
-      case 'removed': return 'text-red-600';
-      case 'modified': return 'text-yellow-600';
-      default: return 'text-gray-400';
+      case 'added':
+        return 'text-green-600';
+      case 'removed':
+        return 'text-red-600';
+      case 'modified':
+        return 'text-yellow-600';
+      default:
+        return 'text-gray-400';
     }
   }
 }

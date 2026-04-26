@@ -24,7 +24,11 @@ export async function upsertEnvVariables(req: AuthRequest, res: Response, next: 
     const envName = getParam(req.params.env);
     const env = await envsService.getEnv(req.userId!, projectId, envName);
     const variables = varsService.parseVariableInputs(req.body);
-    const results = await varsService.upsertEnvVariables({ envId: env.id, userId: req.userId!, variables });
+    const results = await varsService.upsertEnvVariables({
+      envId: env.id,
+      userId: req.userId!,
+      variables,
+    });
     res.json(results);
   } catch (e) {
     next(e);
@@ -75,7 +79,11 @@ export async function importEnv(req: AuthRequest, res: Response, next: NextFunct
     const env = await envsService.getEnv(req.userId!, projectId, envName);
     const { content } = z.object({ content: z.string() }).parse(req.body);
 
-    const result = await varsService.importEnvContent({ envId: env.id, userId: req.userId!, content });
+    const result = await varsService.importEnvContent({
+      envId: env.id,
+      userId: req.userId!,
+      content,
+    });
     res.json(result);
   } catch (e) {
     next(e);
@@ -107,4 +115,3 @@ export async function envHistory(req: AuthRequest, res: Response, next: NextFunc
     next(e);
   }
 }
-

@@ -4,7 +4,7 @@ import { ZodError } from 'zod';
 export class AppError extends Error {
   constructor(
     public statusCode: number,
-    message: string
+    message: string,
   ) {
     super(message);
     this.name = 'AppError';
@@ -15,7 +15,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, _next: Nex
   if (err instanceof ZodError) {
     res.status(400).json({
       error: 'Validation error',
-      details: err.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
+      details: err.errors.map((e) => ({ field: e.path.join('.'), message: e.message })),
     });
     return;
   }

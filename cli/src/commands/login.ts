@@ -8,7 +8,12 @@ import type { LoginResponse } from '@dotenv-manager/shared';
 
 export async function loginAction(): Promise<void> {
   const { email, password } = await inquirer.prompt([
-    { type: 'input', name: 'email', message: 'Email:', validate: (v: string) => v.includes('@') || 'Invalid email' },
+    {
+      type: 'input',
+      name: 'email',
+      message: 'Email:',
+      validate: (v: string) => v.includes('@') || 'Invalid email',
+    },
     { type: 'password', name: 'password', message: 'Password:', mask: '*' },
   ]);
 

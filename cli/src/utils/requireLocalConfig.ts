@@ -9,4 +9,3 @@ export function requireLocalConfig(): LocalConfig {
   }
   return localConfig;
 }
-

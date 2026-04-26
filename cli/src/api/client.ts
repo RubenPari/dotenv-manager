@@ -29,7 +29,7 @@ export function getApiClient(): AxiosInstance {
         console.error('Authentication expired. Please run `dm login` again.');
       }
       return Promise.reject(error);
-    }
+    },
   );
 
   return apiClient;
@@ -47,10 +47,10 @@ export async function getProjectIdBySlug(slug: string): Promise<string> {
   const api = getApiClient();
   const { data: projects } = await api.get<Project[]>('/api/v1/projects');
   const project = projects.find((p) => p.slug === slug);
-  
+
   if (!project) {
     throw new Error(`Project "${slug}" not found`);
   }
-  
+
   return project.id;
 }

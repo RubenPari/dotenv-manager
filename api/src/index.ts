@@ -12,10 +12,12 @@ const config = getConfig();
 const PORT = config.PORT;
 
 app.use(helmet());
-app.use(cors({
-  origin: config.CLIENT_URL,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: config.CLIENT_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 

@@ -8,7 +8,7 @@ import { API_BASE_URL } from '../tokens';
 export class ApiService {
   constructor(
     private http: HttpClient,
-    @Inject(API_BASE_URL) private apiBaseUrl: string
+    @Inject(API_BASE_URL) private apiBaseUrl: string,
   ) {}
 
   get<T>(path: string, params?: Record<string, string>): Observable<T> {

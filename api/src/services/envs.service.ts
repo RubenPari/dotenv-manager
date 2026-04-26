@@ -49,4 +49,3 @@ export async function getEnv(userId: string, projectId: string, envName: string)
   if (!env) throw new AppError(404, 'Environment not found');
   return env;
 }
-

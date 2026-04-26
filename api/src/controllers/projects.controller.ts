@@ -40,7 +40,10 @@ export async function updateProject(req: AuthRequest, res: Response, next: NextF
   try {
     const projectId = getParam(req.params.id);
     const { name, description } = UpdateProjectRequestSchema.parse(req.body);
-    const updated = await projectsService.updateProject(req.userId!, projectId, { name, description });
+    const updated = await projectsService.updateProject(req.userId!, projectId, {
+      name,
+      description,
+    });
     res.json(updated);
   } catch (e) {
     next(e);
@@ -56,4 +59,3 @@ export async function deleteProject(req: AuthRequest, res: Response, next: NextF
     next(e);
   }
 }
-
