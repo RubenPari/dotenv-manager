@@ -17,7 +17,7 @@
     "lint": "npm run lint --workspaces",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "typecheck": "tsc -b --pretty false"
+    "typecheck": "tsc -b --pretty false --noEmit"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
