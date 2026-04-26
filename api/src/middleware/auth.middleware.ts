@@ -1,3 +1,8 @@
+/**
+ * Authentication middleware
+ * @module api/middleware/auth.middleware
+ * @description Express middleware to authenticate requests via Bearer JWT access tokens.
+ */
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError } from './errorHandler';
@@ -9,6 +14,10 @@ export interface AuthRequest extends Request {
   userId?: string;
 }
 
+/**
+ * Authenticate request using `Authorization: Bearer <token>`.
+ * On success, attaches `userId` to the request.
+ */
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(' ')[1];

@@ -1,6 +1,6 @@
 /**
  * Projects service
- * @module services/projects.service
+ * @module api/services/projects.service
  * @description Contains the projects service functions
  */
 import prisma from '../prisma/client';

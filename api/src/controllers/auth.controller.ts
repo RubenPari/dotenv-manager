@@ -1,6 +1,6 @@
 /**
  * Authentication controller
- * @module controllers/auth.controller
+ * @module api/controllers/auth.controller
  * @description Contains the authentication controller functions
  */
 

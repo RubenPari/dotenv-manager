@@ -1,3 +1,8 @@
+/**
+ * Authentication routes
+ * @module api/routes/auth.routes
+ * @description Defines authentication-related HTTP routes and rate limiting.
+ */
 import { Router } from 'express';
 import { register, login, logout, refresh } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';

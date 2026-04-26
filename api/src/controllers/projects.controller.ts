@@ -1,6 +1,6 @@
 /**
  * Projects controller
- * @module controllers/projects.controller
+ * @module api/controllers/projects.controller
  * @description Contains the projects controller functions
  */
 import { Response, NextFunction } from 'express';

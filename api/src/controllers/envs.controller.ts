@@ -1,6 +1,6 @@
 /**
  * Environments controller
- * @module controllers/envs.controller
+ * @module api/controllers/envs.controller
  * @description Contains the environments controller functions
  */
 import { Response, NextFunction } from 'express';

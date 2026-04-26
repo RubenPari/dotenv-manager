@@ -1,6 +1,14 @@
+/**
+ * Error handling middleware
+ * @module api/middleware/errorHandler
+ * @description Centralized error types and Express error handler implementation.
+ */
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
+/**
+ * Application error with an HTTP status code.
+ */
 export class AppError extends Error {
   constructor(
     public statusCode: number,
@@ -11,6 +19,13 @@ export class AppError extends Error {
   }
 }
 
+/**
+ * Express error handler.
+ * @param err - The thrown error.
+ * @param req - The request object.
+ * @param res - The response object.
+ * @param _next - The next function (unused; Express recognizes this as an error handler).
+ */
 export const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof ZodError) {
     res.status(400).json({

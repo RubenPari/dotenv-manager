@@ -1,3 +1,8 @@
+/**
+ * API entrypoint
+ * @module api/index
+ * @description Creates and starts the Express server instance.
+ */
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';

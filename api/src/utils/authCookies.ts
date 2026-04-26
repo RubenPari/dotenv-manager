@@ -1,3 +1,8 @@
+/**
+ * Authentication cookies
+ * @module api/utils/authCookies
+ * @description Helpers for setting authentication-related cookies.
+ */
 import { Response } from 'express';
 import { getConfig } from '../config';
 

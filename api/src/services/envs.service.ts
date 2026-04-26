@@ -1,6 +1,6 @@
 /**
  * Environments service
- * @module services/envs.service
+ * @module api/services/envs.service
  * @description Contains the environments service functions
  */
 import prisma from '../prisma/client';

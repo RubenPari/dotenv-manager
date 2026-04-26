@@ -1,6 +1,6 @@
 /**
  * Variables service
- * @module services/variables.service
+ * @module api/services/variables.service
  * @description Contains the variables service functions
  */
 import { z } from 'zod';

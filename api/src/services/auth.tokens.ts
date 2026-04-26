@@ -1,3 +1,8 @@
+/**
+ * Authentication token helpers
+ * @module api/services/auth.tokens
+ * @description Helpers for generating and persisting access/refresh JWTs.
+ */
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import prisma from '../prisma/client';
 import { getConfig } from '../config';

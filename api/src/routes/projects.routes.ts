@@ -1,3 +1,8 @@
+/**
+ * Projects routes
+ * @module api/routes/projects.routes
+ * @description Defines project, environment, and variable HTTP routes under an authenticated router.
+ */
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
 import * as projectsController from '../controllers/projects.controller';

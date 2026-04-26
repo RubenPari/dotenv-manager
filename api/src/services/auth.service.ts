@@ -1,6 +1,6 @@
 /**
  * Authentication service
- * @module services/auth.service
+ * @module api/services/auth.service
  * @description Contains the authentication service functions
  */
 import bcrypt from 'bcrypt';

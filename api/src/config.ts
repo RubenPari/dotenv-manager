@@ -1,3 +1,8 @@
+/**
+ * API configuration
+ * @module api/config
+ * @description Validates and exposes runtime configuration derived from environment variables.
+ */
 import { z } from 'zod';
 
 const EnvSchema = z.object({
@@ -19,6 +24,11 @@ type Env = z.infer<typeof EnvSchema>;
 
 let cached: Env | null = null;
 
+/**
+ * Get validated API configuration (cached).
+ * @returns The validated configuration object.
+ * @throws If required environment variables are missing or invalid.
+ */
 export function getConfig(): Env {
   if (cached) return cached;
 

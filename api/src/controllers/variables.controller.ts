@@ -1,6 +1,6 @@
 /**
  * Variables controller
- * @module controllers/variables.controller
+ * @module api/controllers/variables.controller
  * @description Contains the variables controller functions
  */
 import { Response, NextFunction } from 'express';

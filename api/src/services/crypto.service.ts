@@ -1,3 +1,8 @@
+/**
+ * Variable encryption
+ * @module api/services/crypto.service
+ * @description Encrypts/decrypts secret variable values for storage.
+ */
 import crypto from 'crypto';
 import { getConfig } from '../config';
 
@@ -9,6 +14,11 @@ interface EncryptedPayload {
   authTag: string;
 }
 
+/**
+ * Encrypt a variable value using AES-256-GCM.
+ * @param value - The plaintext value to encrypt.
+ * @returns A JSON string payload containing IV, ciphertext and auth tag.
+ */
 export function encryptVariable(value: string): string {
   const iv = crypto.randomBytes(12);
   const key = deriveKey();
@@ -26,6 +36,11 @@ export function encryptVariable(value: string): string {
   return JSON.stringify(payload);
 }
 
+/**
+ * Decrypt an encrypted variable payload created by `encryptVariable`.
+ * @param encrypted - The encrypted JSON payload.
+ * @returns The decrypted plaintext value.
+ */
 export function decryptVariable(encrypted: string): string {
   const payload: EncryptedPayload = JSON.parse(encrypted);
   const key = deriveKey();
@@ -41,6 +56,11 @@ export function decryptVariable(encrypted: string): string {
   return decrypted.toString('utf8');
 }
 
+/**
+ * Derive an encryption key from `MASTER_KEY_PEPPER`.
+ * In production this value must be set; in non-production a dev fallback is used.
+ * @returns A 32-byte key buffer suitable for AES-256-GCM.
+ */
 function deriveKey(): Buffer {
   if (!config.MASTER_KEY_PEPPER) {
     if (config.NODE_ENV === 'production') {
