@@ -1,3 +1,8 @@
+/**
+ * Export command
+ * @module cli/commands/export
+ * @description Exports environment variables from the backend in a given format.
+ */
 import fs from 'fs';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -5,6 +10,10 @@ import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
 
+/**
+ * `dm export` action.
+ * @param opts - Options provided by commander.
+ */
 export async function exportAction(opts: { format?: string; output?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
 

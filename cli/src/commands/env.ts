@@ -1,3 +1,8 @@
+/**
+ * Environment commands
+ * @module cli/commands/env
+ * @description Commands to list and select the active environment for the current project.
+ */
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient } from '../api/client';
@@ -6,6 +11,9 @@ import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
 import type { Project } from '@dotenv-manager/shared';
 
+/**
+ * `dm env list` action.
+ */
 export async function envListAction(): Promise<void> {
   const localConfig = requireLocalConfig();
 
@@ -34,6 +42,10 @@ export async function envListAction(): Promise<void> {
   }
 }
 
+/**
+ * `dm env use <name>` action.
+ * @param name - Environment name to set as active.
+ */
 export async function envUseAction(name: string): Promise<void> {
   const localConfig = requireLocalConfig();
 

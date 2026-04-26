@@ -1,3 +1,8 @@
+/**
+ * Sync commands
+ * @module cli/commands/sync
+ * @description Push/pull `.env` variables between local files and the backend API.
+ */
 import fs from 'fs';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -7,6 +12,10 @@ import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
 import { parseDotenv, type VariableInput, type VariableResponse } from '@dotenv-manager/shared';
 
+/**
+ * `dm push` action.
+ * Reads local `.env` file and upserts variables on the backend.
+ */
 export async function pushAction(opts: { env?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
 
@@ -44,6 +53,10 @@ export async function pushAction(opts: { env?: string }): Promise<void> {
   }
 }
 
+/**
+ * `dm pull` action.
+ * Downloads variables from the backend and writes a local `.env` file.
+ */
 export async function pullAction(opts: { env?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
 

@@ -1,9 +1,18 @@
+/**
+ * CLI API client
+ * @module cli/api/client
+ * @description Axios clients and helpers for calling the Dotenv Manager API from the CLI.
+ */
 import axios, { AxiosInstance } from 'axios';
 import { readCredentials } from '../config';
 import type { Project } from '@dotenv-manager/shared';
 
 let apiClient: AxiosInstance | null = null;
 
+/**
+ * Get an authenticated API client (cached).
+ * Adds `Authorization: Bearer <token>` when available.
+ */
 export function getApiClient(): AxiosInstance {
   if (apiClient) return apiClient;
 
@@ -35,6 +44,9 @@ export function getApiClient(): AxiosInstance {
   return apiClient;
 }
 
+/**
+ * Get an unauthenticated API client (no Authorization header).
+ */
 export function getPublicClient(): AxiosInstance {
   const config = readCredentials();
   return axios.create({
@@ -43,6 +55,12 @@ export function getPublicClient(): AxiosInstance {
   });
 }
 
+/**
+ * Resolve a project ID by slug for the currently authenticated user.
+ * @param slug - The project slug.
+ * @returns The project ID.
+ * @throws If the project cannot be found.
+ */
 export async function getProjectIdBySlug(slug: string): Promise<string> {
   const api = getApiClient();
   const { data: projects } = await api.get<Project[]>('/api/v1/projects');

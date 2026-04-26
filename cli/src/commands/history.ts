@@ -1,3 +1,8 @@
+/**
+ * History command
+ * @module cli/commands/history
+ * @description Displays recent audit log entries for the active project/environment.
+ */
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
@@ -6,6 +11,10 @@ import { getErrorMessage } from '../utils/errors';
 
 type AuditLog = { action: string; key: string; createdAt: string };
 
+/**
+ * `dm history` action.
+ * @param opts - Options provided by commander.
+ */
 export async function historyAction(opts: { limit?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
 

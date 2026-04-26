@@ -1,3 +1,8 @@
+/**
+ * Diff command
+ * @module cli/commands/diff
+ * @description Compares two environments and prints a colorized diff.
+ */
 import chalk from 'chalk';
 import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
@@ -5,6 +10,11 @@ import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
 import type { DiffEntry } from '@dotenv-manager/shared';
 
+/**
+ * `dm diff <env1> <env2>` action.
+ * @param env1 - First environment name.
+ * @param env2 - Second environment name.
+ */
 export async function diffAction(env1: string, env2: string): Promise<void> {
   const localConfig = requireLocalConfig();
 

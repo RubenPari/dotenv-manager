@@ -1,3 +1,8 @@
+/**
+ * Init command
+ * @module cli/commands/init
+ * @description Links the current directory to an existing project and writes local config.
+ */
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -6,6 +11,10 @@ import { readLocalConfig, writeLocalConfig, readCredentials } from '../config';
 import { getErrorMessage } from '../utils/errors';
 import type { Project } from '@dotenv-manager/shared';
 
+/**
+ * `dm init` action.
+ * @param opts - Options provided by commander.
+ */
 export async function initAction(opts: { project?: string }): Promise<void> {
   const existing = readLocalConfig();
   if (existing) {

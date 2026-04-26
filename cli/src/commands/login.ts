@@ -1,3 +1,8 @@
+/**
+ * Login command
+ * @module cli/commands/login
+ * @description Authenticates the user and stores an access token in CLI credentials.
+ */
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -6,6 +11,9 @@ import { writeCredentials } from '../config';
 import { getErrorMessage } from '../utils/errors';
 import type { LoginResponse } from '@dotenv-manager/shared';
 
+/**
+ * `dm login` action.
+ */
 export async function loginAction(): Promise<void> {
   const { email, password } = await inquirer.prompt([
     {

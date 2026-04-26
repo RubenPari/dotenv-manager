@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+/**
+ * CLI entrypoint
+ * @module cli/index
+ * @description Registers all CLI commands and parses argv.
+ */
 import { Command } from 'commander';
 import { loginAction } from './commands/login';
 import { initAction } from './commands/init';

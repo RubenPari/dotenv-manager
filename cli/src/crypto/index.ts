@@ -1,3 +1,8 @@
+/**
+ * Local encryption helpers
+ * @module cli/crypto/index
+ * @description Encrypt/decrypt helpers for client-side secrets (AES-256-GCM).
+ */
 import crypto from 'crypto';
 
 interface EncryptedPayload {
@@ -6,6 +11,12 @@ interface EncryptedPayload {
   authTag: string;
 }
 
+/**
+ * Encrypt a value using a password-derived key (AES-256-GCM).
+ * @param value - Plaintext value to encrypt.
+ * @param key - Password/secret used to derive the encryption key.
+ * @returns Encrypted JSON payload (iv/ciphertext/authTag).
+ */
 export function encryptValue(value: string, key: string): string {
   const iv = crypto.randomBytes(12);
   const derivedKey = deriveKey(key);
@@ -23,6 +34,12 @@ export function encryptValue(value: string, key: string): string {
   return JSON.stringify(payload);
 }
 
+/**
+ * Decrypt a payload created by `encryptValue`.
+ * @param encrypted - Encrypted JSON payload.
+ * @param key - Password/secret used to derive the encryption key.
+ * @returns Decrypted plaintext value.
+ */
 export function decryptValue(encrypted: string, key: string): string {
   const payload: EncryptedPayload = JSON.parse(encrypted);
   const derivedKey = deriveKey(key);
@@ -42,6 +59,9 @@ export function decryptValue(encrypted: string, key: string): string {
   return decrypted.toString('utf8');
 }
 
+/**
+ * Derive a 32-byte key from the provided password.
+ */
 function deriveKey(password: string): Buffer {
   return crypto.pbkdf2Sync(password, 'dotenv-manager-local', 310000, 32, 'sha256');
 }

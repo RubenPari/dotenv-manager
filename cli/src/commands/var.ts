@@ -1,3 +1,8 @@
+/**
+ * Variable commands
+ * @module cli/commands/var
+ * @description Commands to manage environment variables via the API.
+ */
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -7,6 +12,10 @@ import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
 import type { VariableResponse, VariableInput } from '@dotenv-manager/shared';
 
+/**
+ * `dm var add <KEY>` action.
+ * @param key - Variable key to create/update.
+ */
 export async function varAddAction(key: string): Promise<void> {
   const localConfig = requireLocalConfig();
 
@@ -59,6 +68,10 @@ export async function varAddAction(key: string): Promise<void> {
   }
 }
 
+/**
+ * `dm var get <KEY>` action.
+ * @param key - Variable key to fetch.
+ */
 export async function varGetAction(key: string): Promise<void> {
   const localConfig = requireLocalConfig();
 
@@ -101,6 +114,10 @@ export async function varGetAction(key: string): Promise<void> {
   }
 }
 
+/**
+ * `dm var list` action.
+ * @param opts - Options provided by commander.
+ */
 export async function varListAction(opts: { env?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
 

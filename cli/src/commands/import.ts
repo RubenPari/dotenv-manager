@@ -1,3 +1,8 @@
+/**
+ * Import command
+ * @module cli/commands/import
+ * @description Imports variables from a dotenv file and sends them to the backend.
+ */
 import fs from 'fs';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -5,6 +10,10 @@ import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
 
+/**
+ * `dm import <file>` action.
+ * @param file - Path to a dotenv file.
+ */
 export async function importAction(file: string): Promise<void> {
   const localConfig = requireLocalConfig();
 
