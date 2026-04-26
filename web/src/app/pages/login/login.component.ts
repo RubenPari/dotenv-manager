@@ -1,3 +1,8 @@
+/**
+ * Login page
+ * @module web/app/pages/login/login.component
+ * @description Login form page using `AuthService`.
+ */
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +25,9 @@ export class LoginComponent {
     private router: Router,
   ) {}
 
+  /**
+   * Submit the login form and navigate to dashboard on success.
+   */
   onSubmit() {
     if (!this.email || !this.password) {
       this.error = 'Email and password are required';

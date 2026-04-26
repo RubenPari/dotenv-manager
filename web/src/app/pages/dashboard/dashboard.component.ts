@@ -1,3 +1,8 @@
+/**
+ * Dashboard page
+ * @module web/app/pages/dashboard/dashboard.component
+ * @description Lists projects and allows basic project CRUD.
+ */
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +34,9 @@ export class DashboardComponent implements OnInit {
     this.loadProjects();
   }
 
+  /**
+   * Load projects for the current user.
+   */
   loadProjects() {
     this.loading = true;
     this.projectService.getProjects().subscribe({
@@ -42,6 +50,9 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  /**
+   * Create a new project using the modal form fields.
+   */
   createProject() {
     if (!this.newName.trim()) {
       this.error = 'Project name is required';
@@ -67,6 +78,9 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  /**
+   * Delete a project after user confirmation.
+   */
   deleteProject(project: Project) {
     if (
       !confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone.`)
@@ -82,10 +96,16 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  /**
+   * Logout the current user.
+   */
   logout() {
     this.authService.logout();
   }
 
+  /**
+   * Compute total variable count across all environments.
+   */
   getVarCount(project: Project): number {
     return project.envs?.reduce((sum, env) => sum + (env._count?.variables || 0), 0) || 0;
   }

@@ -1,3 +1,8 @@
+/**
+ * Settings page
+ * @module web/app/pages/settings/settings.component
+ * @description Displays basic app settings and allows logout.
+ */
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -16,6 +21,9 @@ export class SettingsComponent {
     @Inject(API_BASE_URL) public apiBaseUrl: string,
   ) {}
 
+  /**
+   * Logout the current user.
+   */
   logout() {
     this.authService.logout();
   }

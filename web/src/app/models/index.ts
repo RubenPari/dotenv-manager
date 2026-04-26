@@ -1,3 +1,8 @@
+/**
+ * Web app models
+ * @module web/app/models/index
+ * @description TypeScript interfaces used by web components/services.
+ */
 export interface Project {
   id: string;
   name: string;

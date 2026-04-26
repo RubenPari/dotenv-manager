@@ -1,3 +1,8 @@
+/**
+ * Web app entrypoint
+ * @module web/main
+ * @description Bootstraps the Angular standalone application.
+ */
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';

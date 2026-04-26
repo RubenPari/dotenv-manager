@@ -1,3 +1,8 @@
+/**
+ * Project editor page
+ * @module web/app/pages/project-editor/project-editor.component
+ * @description View/edit project environments and variables, plus diff and history tools.
+ */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -48,6 +53,9 @@ export class ProjectEditorComponent implements OnInit {
     }
   }
 
+  /**
+   * Load project by slug from the project list and initialize the active environment.
+   */
   loadProject(slug: string) {
     this.loading = true;
     this.projectService.getProjects().subscribe({
@@ -74,6 +82,9 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
+  /**
+   * Load variables for the currently selected environment.
+   */
   loadVariables() {
     if (!this.project || !this.activeEnv) return;
 
@@ -90,11 +101,17 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
+  /**
+   * Switch active environment in the UI.
+   */
   selectEnv(envName: string) {
     this.activeEnv = envName;
     this.loadVariables();
   }
 
+  /**
+   * Toggle whether a secret variable value should be shown in the UI.
+   */
   toggleSecret(id: string) {
     if (this.showSecretValues.has(id)) {
       this.showSecretValues.delete(id);
@@ -103,6 +120,9 @@ export class ProjectEditorComponent implements OnInit {
     }
   }
 
+  /**
+   * Add a new variable by submitting a full variables upsert payload.
+   */
   saveVariables() {
     if (!this.project || !this.activeEnv || !this.newVar.key) return;
 
@@ -137,6 +157,9 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
+  /**
+   * Delete a variable by sending an updated variable list (full replace semantics).
+   */
   deleteVariable(variable: Variable) {
     if (!this.project || !this.activeEnv) return;
 
@@ -158,6 +181,9 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
+  /**
+   * Persist an edited variable value by resending the updated variable list.
+   */
   updateVariableValue(variable: Variable) {
     if (!this.project || !this.activeEnv) return;
 
@@ -177,6 +203,9 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
+  /**
+   * Run an environment diff using the selected diff envs.
+   */
   runDiff() {
     if (!this.project || !this.diffEnv1 || !this.diffEnv2) return;
 
@@ -191,6 +220,9 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
+  /**
+   * Load environment audit history.
+   */
   loadHistory() {
     if (!this.project || !this.activeEnv) return;
 
@@ -205,6 +237,9 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
+  /**
+   * Create a new environment for this project.
+   */
   addEnvironment() {
     if (!this.project || !this.newEnvName.trim()) return;
 
@@ -222,6 +257,9 @@ export class ProjectEditorComponent implements OnInit {
       });
   }
 
+  /**
+   * Determine which value to show for a variable (masked for secrets by default).
+   */
   getDisplayValue(variable: Variable): string {
     if (!variable.isSecret) {
       return variable.value || '';
@@ -229,6 +267,9 @@ export class ProjectEditorComponent implements OnInit {
     return this.showSecretValues.has(variable.id) ? variable.value || '[encrypted]' : '••••••••';
   }
 
+  /**
+   * Map a diff status to a Tailwind text color class.
+   */
   getStatusColor(status: string): string {
     switch (status) {
       case 'added':

@@ -1,3 +1,8 @@
+/**
+ * App routes
+ * @module web/app/app.routes
+ * @description Route definitions for the Angular application.
+ */
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 

@@ -1,3 +1,8 @@
+/**
+ * App configuration
+ * @module web/app/app.config
+ * @description Angular providers configuration (router, HTTP interceptors, base URL).
+ */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
