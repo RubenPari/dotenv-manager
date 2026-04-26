@@ -1,0 +1,21 @@
+{
+  "name": "dotenv-manager",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "cli",
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=api",
+    "dev:web": "npm run dev --workspace=web",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
