@@ -1,0 +1,335 @@
+<div class="min-h-screen bg-gray-50">
+  <nav class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center gap-4">
+          <a routerLink="/dashboard" class="text-gray-600 hover:text-gray-900">&larr; Back</a>
+          <h1 class="text-xl font-bold text-gray-900">{{ project?.name }}</h1>
+        </div>
+        <div class="flex items-center gap-4">
+          <a routerLink="/settings" class="text-gray-600 hover:text-gray-900">Settings</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    @if (error) {
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+        {{ error }}
+      </div>
+    }
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">Environments</h2>
+        <button
+          (click)="showAddEnv = true"
+          class="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200 transition-colors"
+        >
+          + Add
+        </button>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        @for (env of environments; track env.name) {
+          <button
+            (click)="selectEnv(env.name)"
+            [class]="activeEnv === env.name ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            class="px-4 py-2 rounded-md text-sm transition-colors"
+          >
+            {{ env.name }}
+            @if (env._count?.variables) {
+              <span class="ml-1 text-xs opacity-75">({{ env._count?.variables || 0 }})</span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (activeEnv) {
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold text-gray-900">Variables — {{ activeEnv }}</h2>
+          <div class="flex gap-2">
+            <button
+              (click)="showDiff = false; showHistory = false; showAddVar = true"
+              class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+            >
+              + Add Variable
+            </button>
+            <button
+              (click)="showHistory = !showHistory; showDiff = false; showAddVar = false"
+              [class]="showHistory ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'"
+              class="px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
+            >
+              History
+            </button>
+            <button
+              (click)="showDiff = !showDiff; showHistory = false; showAddVar = false"
+              [class]="showDiff ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'"
+              class="px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
+            >
+              Diff
+            </button>
+          </div>
+        </div>
+
+        @if (loading) {
+          <div class="flex justify-center py-8">
+            <svg class="animate-spin h-6 w-6 text-blue-600" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          </div>
+        } @else if (showDiff) {
+          <div class="space-y-4">
+            <div class="flex gap-4 items-end">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Environment 1</label>
+                <select
+                  [(ngModel)]="diffEnv1"
+                  class="px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="">Select...</option>
+                  @for (env of environments; track env.name) {
+                    <option [value]="env.name">{{ env.name }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Environment 2</label>
+                <select
+                  [(ngModel)]="diffEnv2"
+                  class="px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="">Select...</option>
+                  @for (env of environments; track env.name) {
+                    <option [value]="env.name">{{ env.name }}</option>
+                  }
+                </select>
+              </div>
+              <button
+                (click)="runDiff()"
+                [disabled]="!diffEnv1 || !diffEnv2"
+                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                Compare
+              </button>
+            </div>
+
+            @if (diffResults.length > 0) {
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ diffEnv1 }}</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{{ diffEnv2 }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  @for (entry of diffResults; track entry.key) {
+                    <tr>
+                      <td class="px-4 py-2 text-sm font-mono">{{ entry.key }}</td>
+                      <td class="px-4 py-2 text-sm" [class]="getStatusColor(entry.status)">
+                        {{ entry.status }}
+                      </td>
+                      <td class="px-4 py-2 text-sm font-mono">{{ entry.env1 || '—' }}</td>
+                      <td class="px-4 py-2 text-sm font-mono">{{ entry.env2 || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        } @else if (showHistory) {
+          <div class="space-y-4">
+            <button
+              (click)="loadHistory()"
+              class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors text-sm"
+            >
+              Load History
+            </button>
+
+            @if (history.length > 0) {
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  @for (log of history; track log.id) {
+                    <tr>
+                      <td class="px-4 py-2 text-sm">
+                        <span [class]="{
+                          'text-green-600': log.action === 'CREATE',
+                          'text-yellow-600': log.action === 'UPDATE',
+                          'text-red-600': log.action === 'DELETE'
+                        }">{{ log.action }}</span>
+                      </td>
+                      <td class="px-4 py-2 text-sm font-mono">{{ log.key }}</td>
+                      <td class="px-4 py-2 text-sm text-gray-500">{{ log.createdAt | date:'medium' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </div>
+        } @else if (showAddVar) {
+          <div class="space-y-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <h3 class="font-medium text-gray-900">Add Variable</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Key *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newVar.key"
+                  name="newKey"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="API_KEY"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newVar.value"
+                  name="newValue"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="value"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newVar.description"
+                  name="newDesc"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Optional description"
+                />
+              </div>
+              <div class="flex items-center gap-6">
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" [(ngModel)]="newVar.isSecret" name="newIsSecret" />
+                  <span class="text-sm text-gray-700">Secret</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" [(ngModel)]="newVar.isRequired" name="newIsRequired" />
+                  <span class="text-sm text-gray-700">Required</span>
+                </label>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <button
+                (click)="showAddVar = false"
+                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                (click)="saveVariables()"
+                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        } @else {
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Value</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Flags</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              @for (variable of variables; track variable.id) {
+                <tr>
+                  <td class="px-4 py-2 text-sm font-mono">{{ variable.key }}</td>
+                  <td class="px-4 py-2 text-sm font-mono">
+                    @if (variable.isSecret) {
+                      <span class="cursor-pointer" (click)="toggleSecret(variable.id)">
+                        {{ getDisplayValue(variable) }}
+                      </span>
+                    } @else {
+                      <input
+                        type="text"
+                        [value]="variable.value || ''"
+                        (change)="variable.value = $any($event.target).value; updateVariableValue(variable)"
+                        class="w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none"
+                      />
+                    }
+                  </td>
+                  <td class="px-4 py-2 text-sm">
+                    @if (variable.isSecret) {
+                      <span class="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Secret</span>
+                    }
+                    @if (variable.isRequired) {
+                      <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded ml-1">Required</span>
+                    }
+                  </td>
+                  <td class="px-4 py-2 text-sm text-gray-500">{{ variable.description || '—' }}</td>
+                  <td class="px-4 py-2 text-sm">
+                    <button
+                      (click)="deleteVariable(variable)"
+                      class="text-red-600 hover:text-red-700"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (variables.length === 0) {
+            <div class="text-center py-8 text-gray-500">
+              No variables in this environment yet
+            </div>
+          }
+        }
+      </div>
+    }
+  </main>
+
+  @if (showAddEnv) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" (click)="showAddEnv = false">
+      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Environment</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              [(ngModel)]="newEnvName"
+              name="newEnvName"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. testing"
+            />
+          </div>
+          <div class="flex gap-3">
+            <button
+              (click)="showAddEnv = false"
+              class="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              (click)="addEnvironment()"
+              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
