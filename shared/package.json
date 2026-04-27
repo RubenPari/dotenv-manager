@@ -1,9 +1,16 @@
 {
-  "name": "@dotenv-manager/shared",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@rubenpari/dotenv-cli-shared",
+  "version": "1.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE*"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "node -e \"process.exit(0)\"",
