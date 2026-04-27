@@ -27,5 +27,11 @@
     "typescript-eslint": "^8.0.0",
     "prettier": "^3.3.0",
     "typescript": "^5.9.0"
+  },
+  "overrides": {
+    "esbuild": "0.27.7",
+    "@angular/build": {
+      "esbuild": "0.27.7"
+    }
   }
 }
