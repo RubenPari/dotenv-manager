@@ -10,7 +10,7 @@ import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { getActiveEnv } from '../config';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
-import type { VariableResponse, VariableInput } from '@dotenv-manager/shared';
+import type { VariableResponse, VariableInput } from '@rubenpari/dotenv-cli-shared';
 
 /**
  * `dm var add <KEY>` action.

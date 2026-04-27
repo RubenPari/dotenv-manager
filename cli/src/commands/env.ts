@@ -9,7 +9,7 @@ import { getApiClient } from '../api/client';
 import { writeLocalConfig, getActiveEnv } from '../config';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
-import type { Project } from '@dotenv-manager/shared';
+import type { Project } from '@rubenpari/dotenv-cli-shared';
 
 /**
  * `dm env list` action.

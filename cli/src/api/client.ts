@@ -5,7 +5,7 @@
  */
 import axios, { AxiosInstance } from 'axios';
 import { readCredentials } from '../config';
-import type { Project } from '@dotenv-manager/shared';
+import type { Project } from '@rubenpari/dotenv-cli-shared';
 
 let apiClient: AxiosInstance | null = null;
 

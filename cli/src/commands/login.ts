@@ -9,7 +9,7 @@ import ora from 'ora';
 import { getPublicClient } from '../api/client';
 import { writeCredentials } from '../config';
 import { getErrorMessage } from '../utils/errors';
-import type { LoginResponse } from '@dotenv-manager/shared';
+import type { LoginResponse } from '@rubenpari/dotenv-cli-shared';
 
 /**
  * `dm login` action.

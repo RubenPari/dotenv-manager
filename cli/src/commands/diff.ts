@@ -8,7 +8,7 @@ import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
-import type { DiffEntry } from '@dotenv-manager/shared';
+import type { DiffEntry } from '@rubenpari/dotenv-cli-shared';
 
 /**
  * `dm diff <env1> <env2>` action.

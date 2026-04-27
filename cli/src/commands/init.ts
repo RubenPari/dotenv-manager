@@ -9,7 +9,7 @@ import ora from 'ora';
 import { getApiClient } from '../api/client';
 import { readLocalConfig, writeLocalConfig, readCredentials } from '../config';
 import { getErrorMessage } from '../utils/errors';
-import type { Project } from '@dotenv-manager/shared';
+import type { Project } from '@rubenpari/dotenv-cli-shared';
 
 /**
  * `dm init` action.

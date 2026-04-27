@@ -10,7 +10,11 @@ import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { getActiveEnv } from '../config';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
 import { getErrorMessage } from '../utils/errors';
-import { parseDotenv, type VariableInput, type VariableResponse } from '@dotenv-manager/shared';
+import {
+  parseDotenv,
+  type VariableInput,
+  type VariableResponse,
+} from '@rubenpari/dotenv-cli-shared';
 
 /**
  * `dm push` action.
