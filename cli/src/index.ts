@@ -16,9 +16,12 @@ import { exportAction } from './commands/export';
 import { importAction } from './commands/import';
 import { historyAction } from './commands/history';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../package.json') as { version: string };
+
 const program = new Command();
 
-program.name('dm').description('Dotenv Manager CLI').version('1.0.0');
+program.name('dm').description('Dotenv Manager CLI').version(version);
 
 program.command('login').description('Authenticate with Dotenv Manager').action(loginAction);
 
