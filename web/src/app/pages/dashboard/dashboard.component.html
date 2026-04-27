@@ -152,7 +152,7 @@
 </div>
 
 <ui-modal [title]="'Create project'" [(open)]="showCreateModal">
-  <form (ngSubmit)="createProject()" class="space-y-4">
+  <form (submit)="$event.preventDefault(); createProject()" class="space-y-4">
     <ui-input
       name="n"
       label="Name"
@@ -194,7 +194,7 @@
 </ui-modal>
 
 <ui-modal [title]="'Rename project'" [showClose]="true" [(open)]="showRenameModal">
-  <form (ngSubmit)="saveRename()" class="space-y-4">
+  <form (submit)="$event.preventDefault(); saveRename()" class="space-y-4">
     <ui-input label="Name" name="rname" [(value)]="renameName" [required]="true" />
     <div>
       <label class="mb-1.5 block text-sm font-medium text-fg" for="rdesc"

@@ -407,7 +407,7 @@
   [showClose]="true"
   [(open)]="showAddEnv"
 >
-  <form (ngSubmit)="addEnvironment()" class="space-y-4">
+  <form (submit)="$event.preventDefault(); addEnvironment()" class="space-y-4">
     <ui-input
       label="Name"
       name="envn"

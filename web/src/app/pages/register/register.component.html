@@ -37,7 +37,7 @@
         <p class="mt-1 text-sm text-fg-muted">Choose a strong password for your team.</p>
       </div>
 
-      <form (ngSubmit)="onSubmit()" class="space-y-4">
+      <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-4">
         <ui-input
           label="Email"
           name="email"
