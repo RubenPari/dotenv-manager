@@ -41,7 +41,11 @@
         <p class="mt-1 text-sm text-fg-muted">Use your account to open the dashboard.</p>
       </div>
 
-      <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-4">
+      <form
+        (submit)="$event.preventDefault(); onSubmit()"
+        class="space-y-4"
+        data-testid="login-form"
+      >
         <ui-input
           label="Email"
           name="email"
@@ -69,6 +73,7 @@
           [size]="'lg'"
           [loading]="loading()"
           [disabled]="loading()"
+          data-testid="login-submit"
         >
           Sign in
         </ui-button>
@@ -79,6 +84,7 @@
         <a
           routerLink="/register"
           class="font-medium text-accent transition-ui hover:text-accent-hover hover:underline"
+          data-testid="login-to-register"
         >
           Create one
         </a>

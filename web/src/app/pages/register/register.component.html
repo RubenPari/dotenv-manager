@@ -37,7 +37,11 @@
         <p class="mt-1 text-sm text-fg-muted">Choose a strong password for your team.</p>
       </div>
 
-      <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-4">
+      <form
+        (submit)="$event.preventDefault(); onSubmit()"
+        class="space-y-4"
+        data-testid="register-form"
+      >
         <ui-input
           label="Email"
           name="email"
@@ -89,6 +93,7 @@
           [size]="'lg'"
           [loading]="loading()"
           [disabled]="loading()"
+          data-testid="register-submit"
         >
           Create account
         </ui-button>
@@ -99,6 +104,7 @@
         <a
           routerLink="/login"
           class="font-medium text-accent transition-ui hover:text-accent-hover hover:underline"
+          data-testid="register-to-login"
         >
           Sign in
         </a>
