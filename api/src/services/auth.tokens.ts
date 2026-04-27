@@ -3,6 +3,7 @@
  * @module api/services/auth.tokens
  * @description Helpers for generating and persisting access/refresh JWTs.
  */
+import crypto from 'node:crypto';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import prisma from '../prisma/client';
 import { getConfig } from '../config';
@@ -35,7 +36,7 @@ export function generateAccessToken(userId: string): string {
  * @returns The refresh token
  */
 export function generateRefreshToken(userId: string): string {
-  const options: SignOptions = { expiresIn: '30d' };
+  const options: SignOptions = { expiresIn: '30d', jwtid: crypto.randomUUID() };
   return jwt.sign({ userId }, config.REFRESH_TOKEN_SECRET, options);
 }
 
