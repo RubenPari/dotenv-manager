@@ -3,7 +3,7 @@
  * @module api/services/auth.service
  * @description Contains the authentication service functions
  */
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import prisma from '../prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import jwt from 'jsonwebtoken';
