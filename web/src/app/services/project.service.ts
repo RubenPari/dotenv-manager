@@ -3,23 +3,23 @@
  * @module web/app/services/project.service
  * @description Typed API calls for projects, environments, variables, diffs and history.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import {
-  Project,
-  Environment,
-  Variable,
-  DiffEntry,
   AuditLog,
-  CreateProjectDto,
   CreateEnvDto,
+  CreateProjectDto,
+  DiffEntry,
+  Environment,
+  Project,
+  Variable,
   VariableDto,
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
-  constructor(private api: ApiService) {}
+  private readonly api = inject(ApiService);
 
   /**
    * List all projects visible to the current user.

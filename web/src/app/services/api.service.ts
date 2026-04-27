@@ -3,18 +3,15 @@
  * @module web/app/services/api.service
  * @description Small wrapper around Angular HttpClient to call the backend API.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Inject } from '@angular/core';
 import { API_BASE_URL } from '../tokens';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  constructor(
-    private http: HttpClient,
-    @Inject(API_BASE_URL) private apiBaseUrl: string,
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly apiBaseUrl = inject(API_BASE_URL);
 
   /**
    * Perform a GET request.

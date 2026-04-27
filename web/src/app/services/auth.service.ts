@@ -3,10 +3,10 @@
  * @module web/app/services/auth.service
  * @description Handles login/register/logout and token storage for the web app.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, Observable, of, tap } from 'rxjs';
 import { ApiService } from './api.service';
-import { catchError, Observable, tap, of } from 'rxjs';
 
 interface LoginResponse {
   accessToken: string;
@@ -18,37 +18,38 @@ interface User {
   email: string;
 }
 
+const TOKEN_KEY = 'token';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private user: User | null = null;
+  private readonly api = inject(ApiService);
+  private readonly router = inject(Router);
 
-  constructor(
-    private api: ApiService,
-    private router: Router,
-  ) {}
+  private readonly userSignal = signal<User | null>(null);
+  private readonly tokenSignal = signal<string | null>(this.readStoredToken());
+
+  /** Current user as a read-only signal. */
+  readonly currentUser = this.userSignal.asReadonly();
+
+  /** Whether a token is present. */
+  readonly isAuthenticated = computed(() => this.tokenSignal() !== null);
 
   /**
    * Authenticate the user and persist the access token in localStorage.
    */
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.api.post<LoginResponse>('/auth/login', { email, password }).pipe(
-      tap((res) => {
-        localStorage.setItem('token', res.accessToken);
-        this.user = res.user;
-      }),
-    );
+    return this.api
+      .post<LoginResponse>('/auth/login', { email, password })
+      .pipe(tap((res) => this.persistSession(res)));
   }
 
   /**
    * Register a new user and persist the access token in localStorage.
    */
   register(email: string, password: string): Observable<LoginResponse> {
-    return this.api.post<LoginResponse>('/auth/register', { email, password }).pipe(
-      tap((res) => {
-        localStorage.setItem('token', res.accessToken);
-        this.user = res.user;
-      }),
-    );
+    return this.api
+      .post<LoginResponse>('/auth/register', { email, password })
+      .pipe(tap((res) => this.persistSession(res)));
   }
 
   /**
@@ -57,15 +58,9 @@ export class AuthService {
    */
   logout(): Observable<void> {
     return this.api.post<void>('/auth/logout', {}).pipe(
-      tap(() => {
-        localStorage.removeItem('token');
-        this.user = null;
-        this.router.navigate(['/login']);
-      }),
+      tap(() => this.clearSession()),
       catchError(() => {
-        localStorage.removeItem('token');
-        this.user = null;
-        this.router.navigate(['/login']);
+        this.clearSession();
         return of(undefined);
       }),
     );
@@ -82,20 +77,26 @@ export class AuthService {
    * Get the currently stored access token.
    */
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return this.tokenSignal();
   }
 
-  /**
-   * Whether a token is present.
-   */
-  isAuthenticated(): boolean {
-    return !!this.getToken();
+  private persistSession(res: LoginResponse): void {
+    localStorage.setItem(TOKEN_KEY, res.accessToken);
+    this.tokenSignal.set(res.accessToken);
+    this.userSignal.set(res.user);
   }
 
-  /**
-   * Get the current user snapshot (if set by login/register).
-   */
-  getCurrentUser(): User | null {
-    return this.user;
+  private clearSession(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    this.tokenSignal.set(null);
+    this.userSignal.set(null);
+    void this.router.navigate(['/login']);
+  }
+
+  private readStoredToken(): string | null {
+    if (typeof localStorage === 'undefined') {
+      return null;
+    }
+    return localStorage.getItem(TOKEN_KEY);
   }
 }
