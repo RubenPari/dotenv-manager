@@ -3,28 +3,25 @@
  * @module web/app/pages/settings/settings.component
  * @description Displays basic app settings and allows logout.
  */
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { Inject } from '@angular/core';
 import { API_BASE_URL } from '../../tokens';
 
 @Component({
   selector: 'app-settings',
-  standalone: true,
   imports: [RouterLink],
   templateUrl: './settings.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsComponent {
-  constructor(
-    private authService: AuthService,
-    @Inject(API_BASE_URL) public apiBaseUrl: string,
-  ) {}
+  private readonly authService = inject(AuthService);
+  protected readonly apiBaseUrl = inject(API_BASE_URL);
 
   /**
    * Logout the current user.
    */
-  logout() {
-    this.authService.logout();
+  protected logout(): void {
+    this.authService.logout().subscribe();
   }
 }

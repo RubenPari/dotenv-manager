@@ -3,56 +3,60 @@
  * @module web/app/pages/register/register.component
  * @description Registration form page using `AuthService`.
  */
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-register',
-  standalone: true,
   imports: [FormsModule, RouterLink],
   templateUrl: './register.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {
-  email = '';
-  password = '';
-  confirmPassword = '';
-  error = '';
-  loading = false;
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-  ) {}
+  protected readonly email = signal('');
+  protected readonly password = signal('');
+  protected readonly confirmPassword = signal('');
+  protected readonly error = signal('');
+  protected readonly loading = signal(false);
 
   /**
    * Submit the registration form and navigate to dashboard on success.
    */
-  onSubmit() {
-    if (!this.email || !this.password || !this.confirmPassword) {
-      this.error = 'All fields are required';
+  protected onSubmit(): void {
+    const email = this.email();
+    const password = this.password();
+    const confirmPassword = this.confirmPassword();
+
+    if (!email || !password || !confirmPassword) {
+      this.error.set('All fields are required');
       return;
     }
 
-    if (this.password !== this.confirmPassword) {
-      this.error = 'Passwords do not match';
+    if (password !== confirmPassword) {
+      this.error.set('Passwords do not match');
       return;
     }
 
-    if (this.password.length < 8) {
-      this.error = 'Password must be at least 8 characters';
+    if (password.length < 8) {
+      this.error.set('Password must be at least 8 characters');
       return;
     }
 
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
 
-    this.authService.register(this.email, this.password).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+    this.authService.register(email, password).subscribe({
+      next: () => {
+        void this.router.navigate(['/dashboard']);
+      },
       error: (err) => {
-        this.loading = false;
-        this.error = err.error?.message || 'Registration failed';
+        this.loading.set(false);
+        this.error.set(err.error?.message || 'Registration failed');
       },
     });
   }

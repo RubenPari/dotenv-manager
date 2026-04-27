@@ -17,20 +17,20 @@
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-900">My Projects</h2>
       <button
-        (click)="showCreateModal = true"
+        (click)="showCreateModal.set(true)"
         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
       >
         + New Project
       </button>
     </div>
 
-    @if (error) {
+    @if (error()) {
       <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-        {{ error }}
+        {{ error() }}
       </div>
     }
 
-    @if (loading) {
+    @if (loading()) {
       <div class="flex justify-center py-12">
         <svg class="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
           <circle
@@ -49,14 +49,14 @@
           />
         </svg>
       </div>
-    } @else if (projects.length === 0) {
+    } @else if (projects().length === 0) {
       <div class="text-center py-12 bg-white rounded-lg shadow">
         <p class="text-gray-500 text-lg">No projects yet</p>
         <p class="text-gray-400 mt-2">Create your first project to get started</p>
       </div>
     } @else {
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        @for (project of projects; track project.id) {
+        @for (project of projects(); track project.id) {
           <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ project.name }}</h3>
             @if (project.description) {
@@ -86,10 +86,10 @@
     }
   </main>
 
-  @if (showCreateModal) {
+  @if (showCreateModal()) {
     <div
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      (click)="showCreateModal = false"
+      (click)="showCreateModal.set(false)"
     >
       <div
         class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
@@ -97,9 +97,9 @@
       >
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Create New Project</h3>
 
-        @if (error) {
+        @if (error()) {
           <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-sm">
-            {{ error }}
+            {{ error() }}
           </div>
         }
 
@@ -132,7 +132,7 @@
           <div class="flex gap-3">
             <button
               type="button"
-              (click)="showCreateModal = false"
+              (click)="showCreateModal.set(false)"
               class="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
             >
               Cancel

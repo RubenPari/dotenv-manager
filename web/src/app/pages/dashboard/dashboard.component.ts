@@ -3,49 +3,46 @@
  * @module web/app/pages/dashboard/dashboard.component
  * @description Lists projects and allows basic project CRUD.
  */
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { ProjectService } from '../../services/project.service';
 import { AuthService } from '../../services/auth.service';
-import { Project, CreateProjectDto } from '../../models';
+import { CreateProjectDto, Project } from '../../models';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule],
   templateUrl: './dashboard.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit {
-  projects: Project[] = [];
-  loading = true;
-  showCreateModal = false;
-  newName = '';
-  newDescription = '';
-  error = '';
+  private readonly projectService = inject(ProjectService);
+  private readonly authService = inject(AuthService);
 
-  constructor(
-    private projectService: ProjectService,
-    private authService: AuthService,
-  ) {}
+  protected readonly projects = signal<Project[]>([]);
+  protected readonly loading = signal(true);
+  protected readonly showCreateModal = signal(false);
+  protected readonly newName = signal('');
+  protected readonly newDescription = signal('');
+  protected readonly error = signal('');
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadProjects();
   }
 
   /**
    * Load projects for the current user.
    */
-  loadProjects() {
-    this.loading = true;
+  protected loadProjects(): void {
+    this.loading.set(true);
     this.projectService.getProjects().subscribe({
       next: (projects) => {
-        this.projects = projects;
-        this.loading = false;
+        this.projects.set(projects);
+        this.loading.set(false);
       },
       error: () => {
-        this.loading = false;
+        this.loading.set(false);
       },
     });
   }
@@ -53,27 +50,28 @@ export class DashboardComponent implements OnInit {
   /**
    * Create a new project using the modal form fields.
    */
-  createProject() {
-    if (!this.newName.trim()) {
-      this.error = 'Project name is required';
+  protected createProject(): void {
+    const name = this.newName().trim();
+    if (!name) {
+      this.error.set('Project name is required');
       return;
     }
 
     const data: CreateProjectDto = {
-      name: this.newName.trim(),
-      description: this.newDescription.trim() || undefined,
+      name,
+      description: this.newDescription().trim() || undefined,
     };
 
     this.projectService.createProject(data).subscribe({
       next: () => {
-        this.showCreateModal = false;
-        this.newName = '';
-        this.newDescription = '';
-        this.error = '';
+        this.showCreateModal.set(false);
+        this.newName.set('');
+        this.newDescription.set('');
+        this.error.set('');
         this.loadProjects();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to create project';
+        this.error.set(err.error?.message || 'Failed to create project');
       },
     });
   }
@@ -81,7 +79,7 @@ export class DashboardComponent implements OnInit {
   /**
    * Delete a project after user confirmation.
    */
-  deleteProject(project: Project) {
+  protected deleteProject(project: Project): void {
     if (
       !confirm(`Are you sure you want to delete "${project.name}"? This action cannot be undone.`)
     ) {
@@ -91,7 +89,7 @@ export class DashboardComponent implements OnInit {
     this.projectService.deleteProject(project.id).subscribe({
       next: () => this.loadProjects(),
       error: (err) => {
-        this.error = err.error?.message || 'Failed to delete project';
+        this.error.set(err.error?.message || 'Failed to delete project');
       },
     });
   }
@@ -99,14 +97,14 @@ export class DashboardComponent implements OnInit {
   /**
    * Logout the current user.
    */
-  logout() {
-    this.authService.logout();
+  protected logout(): void {
+    this.authService.logout().subscribe();
   }
 
   /**
    * Compute total variable count across all environments.
    */
-  getVarCount(project: Project): number {
-    return project.envs?.reduce((sum, env) => sum + (env._count?.variables || 0), 0) || 0;
+  protected getVarCount(project: Project): number {
+    return project.envs?.reduce((sum, env) => sum + (env._count?.variables ?? 0), 0) ?? 0;
   }
 }
