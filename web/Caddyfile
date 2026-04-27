@@ -1,0 +1,13 @@
+:80 {
+  root * /srv
+  encode gzip zstd
+
+  # Reverse proxy API to same-origin path (cookies stay first-party)
+  handle_path /api/* {
+    reverse_proxy dotenv-manager-api.internal:3000
+  }
+
+  # Serve built Angular app (SPA)
+  try_files {path} {path}/ /index.html
+  file_server
+}
