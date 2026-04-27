@@ -1,8 +1,11 @@
 /**
- * Jest setup
+ * Vitest setup
  * @module web/test-setup
- * @description Jest environment setup for Angular tests.
+ * @description Configures the Angular TestBed for zoneless change detection.
  */
-import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 
-setupZoneTestEnv();
+TestBed.configureTestingModule({
+  providers: [provideZonelessChangeDetection()],
+});
