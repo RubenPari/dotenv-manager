@@ -1,0 +1,91 @@
+<!-- Mobile overlay -->
+@if (mobileNavOpen()) {
+  <div
+    class="fixed inset-0 z-40 bg-fg/50 backdrop-blur-sm md:hidden"
+    (click)="closeMobile()"
+    role="presentation"
+  ></div>
+}
+
+<aside
+  [class.-translate-x-full]="!mobileNavOpen()"
+  class="fixed z-50 flex w-64 shrink-0 flex-col border-r border-border bg-elevated transition-transform md:static md:translate-x-0"
+  [class.inset-y-0]="true"
+  [class.left-0]="true"
+>
+  <div class="flex h-16 items-center gap-2 border-b border-border px-4">
+    <lucide-icon class="shrink-0 text-accent" name="braces" [size]="26" />
+    <div class="min-w-0">
+      <div class="truncate text-sm font-semibold text-fg">Dotenv Manager</div>
+      <div class="truncate text-xs text-fg-muted">Centralized envs</div>
+    </div>
+  </div>
+
+  <nav class="flex flex-1 flex-col gap-0.5 p-3" aria-label="Main">
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="bg-surface !text-fg"
+      (click)="closeMobile()"
+      class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-fg-muted transition-ui hover:bg-surface hover:text-fg"
+    >
+      <lucide-icon class="shrink-0" name="layout-dashboard" [size]="18" />
+      Projects
+    </a>
+    <a
+      routerLink="/settings"
+      routerLinkActive="bg-surface !text-fg"
+      (click)="closeMobile()"
+      class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-fg-muted transition-ui hover:bg-surface hover:text-fg"
+    >
+      <lucide-icon class="shrink-0" name="settings" [size]="18" />
+      Settings
+    </a>
+  </nav>
+
+  <div class="border-t border-border p-3">
+    <div class="mb-3">
+      <p class="mb-1.5 text-xs text-fg-muted">Theme</p>
+      <ui-theme-toggle />
+    </div>
+    @if (userEmail()) {
+      <p class="mb-2 truncate text-xs text-fg-muted" [title]="userEmail()!.email">
+        {{ userEmail()!.email }}
+      </p>
+    }
+    <ui-button variant="ghost" [fullWidth]="true" (click)="signOut()">
+      <lucide-icon name="log-out" [size]="16" class="shrink-0" />
+      <span>Sign out</span>
+    </ui-button>
+  </div>
+</aside>
+
+<div class="flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
+  <header
+    class="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border bg-elevated/80 px-4 backdrop-blur-md md:px-6"
+  >
+    <div class="flex min-w-0 items-center gap-2">
+      <button
+        type="button"
+        class="md:hidden -ml-1 rounded-md p-2 text-fg-muted transition-ui hover:bg-surface hover:text-fg focus:outline-none focus:ring-2 focus:ring-ring/50"
+        (click)="mobileNavOpen.set(true)"
+        aria-label="Open menu"
+      >
+        <lucide-icon name="menu" [size]="20" class="shrink-0" />
+      </button>
+      <nav class="min-w-0 text-sm text-fg-muted" aria-label="Breadcrumb">
+        <a routerLink="/dashboard" class="text-fg-muted transition-ui hover:text-fg">Projects</a>
+        @if (currentUrl().startsWith('/project/')) {
+          <span class="px-1 text-fg-muted/60">/</span>
+          <span class="truncate text-fg">{{ projectSlugFromUrl(currentUrl()!) }}</span>
+        } @else if (currentUrl().includes('/settings')) {
+          <span class="px-1 text-fg-muted/60">/</span>
+          <span class="text-fg">Settings</span>
+        }
+      </nav>
+    </div>
+  </header>
+
+  <div class="min-h-0 flex-1 overflow-auto p-4 md:p-6">
+    <router-outlet />
+  </div>
+</div>

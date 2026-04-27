@@ -19,13 +19,14 @@ interface User {
 }
 
 const TOKEN_KEY = 'token';
+const USER_KEY = 'user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
 
-  private readonly userSignal = signal<User | null>(null);
+  private readonly userSignal = signal<User | null>(this.readStoredUser());
   private readonly tokenSignal = signal<string | null>(this.readStoredToken());
 
   /** Current user as a read-only signal. */
@@ -81,13 +82,23 @@ export class AuthService {
   }
 
   private persistSession(res: LoginResponse): void {
-    localStorage.setItem(TOKEN_KEY, res.accessToken);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(TOKEN_KEY, res.accessToken);
+      try {
+        localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+      } catch {
+        /* ignore */
+      }
+    }
     this.tokenSignal.set(res.accessToken);
     this.userSignal.set(res.user);
   }
 
   private clearSession(): void {
-    localStorage.removeItem(TOKEN_KEY);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    }
     this.tokenSignal.set(null);
     this.userSignal.set(null);
     void this.router.navigate(['/login']);
@@ -98,5 +109,20 @@ export class AuthService {
       return null;
     }
     return localStorage.getItem(TOKEN_KEY);
+  }
+
+  private readStoredUser(): User | null {
+    if (typeof localStorage === 'undefined') {
+      return null;
+    }
+    try {
+      const raw = localStorage.getItem(USER_KEY);
+      if (!raw) {
+        return null;
+      }
+      return JSON.parse(raw) as User;
+    } catch {
+      return null;
+    }
   }
 }
