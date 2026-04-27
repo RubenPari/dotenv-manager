@@ -1,380 +1,439 @@
-<div class="min-h-screen bg-gray-50">
-  <nav class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center gap-4">
-          <a routerLink="/dashboard" class="text-gray-600 hover:text-gray-900">&larr; Back</a>
-          <h1 class="text-xl font-bold text-gray-900">{{ project()?.name }}</h1>
-        </div>
-        <div class="flex items-center gap-4">
-          <a routerLink="/settings" class="text-gray-600 hover:text-gray-900">Settings</a>
-        </div>
-      </div>
+<div class="mx-auto flex min-h-0 max-w-6xl flex-1 flex-col gap-4 lg:flex-row">
+  <!-- Environments rail -->
+  <aside
+    class="w-full shrink-0 rounded-xl border border-border bg-elevated p-3 lg:w-56 lg:self-start"
+  >
+    <div class="mb-2 flex items-center justify-between">
+      <h2 class="text-xs font-semibold uppercase tracking-wide text-fg-muted">Environments</h2>
     </div>
-  </nav>
+    <ul class="space-y-0.5">
+      @for (env of environments(); track env.id) {
+        <li>
+          <button
+            type="button"
+            [class]="
+              activeEnv() === env.name
+                ? 'border-l-accent w-full border-l-2 bg-surface py-2 pl-3 pr-2 text-left text-sm font-medium text-fg'
+                : 'w-full border-l-2 border-transparent py-2 pl-3 pr-2 text-left text-sm text-fg-muted transition-ui hover:bg-surface/80 hover:text-fg'
+            "
+            (click)="selectEnv(env.name)"
+          >
+            <span class="flex items-center justify-between gap-1">
+              <span class="max-w-[7rem] truncate font-mono text-xs text-fg"> {{ env.name }} </span>
+              <span class="shrink-0 text-xs text-fg-muted/80">
+                ({{ env._count?.variables ?? 0 }})
+              </span>
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+    <div class="mt-3 space-y-2 border-t border-border/80 pt-3">
+      <ui-button [fullWidth]="true" [size]="'sm'" variant="secondary" (click)="showAddEnv.set(true)">
+        <lucide-icon class="h-3.5 w-3.5" name="plus" [size]="14" />
+        Add environment
+      </ui-button>
+      @if (activeEnv()) {
+        <ui-button
+          [fullWidth]="true"
+          [size]="'sm'"
+          variant="ghost"
+          (click)="openDeleteEnv(activeEnv()!)"
+        >
+          <lucide-icon class="h-3.5 w-3.5" name="trash-2" [size]="14" />
+          Delete current
+        </ui-button>
+      }
+    </div>
+  </aside>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="min-w-0 flex-1">
+    <div class="mb-4">
+      <h1 class="text-xl font-semibold text-fg">
+        {{ project()?.name || '—' }}
+      </h1>
+    </div>
+
     @if (error()) {
-      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+      <div class="mb-4 rounded-lg border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
         {{ error() }}
       </div>
     }
 
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold text-gray-900">Environments</h2>
+    <div
+      class="sticky top-0 z-20 mb-4 -mx-1 flex flex-col gap-3 border-b border-border/80 bg-bg/80 pb-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="inline-flex gap-0.5 rounded-lg border border-border bg-surface p-0.5" role="tablist">
         <button
-          (click)="showAddEnv.set(true)"
-          class="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200 transition-colors"
+          type="button"
+          [class]="
+            activeTab() === 'variables' ? 'bg-elevated text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+          "
+          class="rounded-md px-3 py-1.5 text-sm font-medium transition-ui"
+          (click)="setTab('variables')"
+          [attr.aria-pressed]="activeTab() === 'variables'"
         >
-          + Add
+          Variables
+        </button>
+        <button
+          type="button"
+          [class]="
+            activeTab() === 'diff' ? 'bg-elevated text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+          "
+          class="rounded-md px-3 py-1.5 text-sm font-medium transition-ui"
+          (click)="setTab('diff')"
+          [attr.aria-pressed]="activeTab() === 'diff'"
+        >
+          Diff
+        </button>
+        <button
+          type="button"
+          [class]="
+            activeTab() === 'history' ? 'bg-elevated text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+          "
+          class="rounded-md px-3 py-1.5 text-sm font-medium transition-ui"
+          (click)="setTab('history')"
+          [attr.aria-pressed]="activeTab() === 'history'"
+        >
+          History
         </button>
       </div>
-      <div class="flex flex-wrap gap-2">
-        @for (env of environments(); track env.name) {
-          <button
-            (click)="selectEnv(env.name)"
-            [class]="
-              activeEnv() === env.name
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            "
-            class="px-4 py-2 rounded-md text-sm transition-colors"
+      <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
+        @if (activeTab() === 'variables') {
+          <div class="relative w-full min-w-0 sm:max-w-xs">
+            <lucide-icon
+              class="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted"
+              name="search"
+              [size]="16"
+            />
+            <input
+              type="search"
+              [value]="keyFilter()"
+              (input)="keyFilter.set($any($event.target).value)"
+              class="h-9 w-full rounded-lg border border-border bg-elevated pl-8 pr-3 text-sm text-fg"
+              placeholder="Filter keys…"
+            />
+          </div>
+          <ui-button [size]="'sm'" (click)="toggleAddVar()">
+            <lucide-icon class="h-3.5 w-3.5" name="plus" [size]="14" />
+            Add variable
+          </ui-button>
+        }
+        @if (activeTab() === 'diff') {
+          <label class="flex items-center gap-1.5 text-sm text-fg-muted">
+            <input type="checkbox" [ngModel]="hideUnchanged()" (ngModelChange)="hideUnchanged.set($event)" />
+            Hide unchanged
+          </label>
+        }
+        @if (activeTab() === 'history' && history().length > 0) {
+          <ui-button
+            [size]="'sm'"
+            variant="secondary"
+            [loading]="historyLoading()"
+            [disabled]="!hasMoreHistory() || historyLoading()"
+            (click)="loadHistory(true)"
           >
-            {{ env.name }}
-            @if (env._count?.variables) {
-              <span class="ml-1 text-xs opacity-75">({{ env._count?.variables || 0 }})</span>
-            }
-          </button>
+            Load more
+          </ui-button>
         }
       </div>
     </div>
 
-    @if (activeEnv(); as currentEnv) {
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold text-gray-900">Variables — {{ currentEnv }}</h2>
-          <div class="flex gap-2">
-            <button
-              (click)="togglePanel('addVar')"
-              class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-            >
-              + Add Variable
-            </button>
-            <button
-              (click)="togglePanel('history')"
-              [class]="showHistory() ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'"
-              class="px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
-            >
-              History
-            </button>
-            <button
-              (click)="togglePanel('diff')"
-              [class]="showDiff() ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'"
-              class="px-3 py-1 rounded text-sm hover:bg-gray-300 transition-colors"
-            >
-              Diff
-            </button>
-          </div>
-        </div>
-
-        @if (loading()) {
-          <div class="flex justify-center py-8">
-            <svg class="animate-spin h-6 w-6 text-blue-600" viewBox="0 0 24 24">
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-                fill="none"
+    @if (activeTab() === 'variables' && activeEnv()) {
+      <div class="overflow-x-auto rounded-xl border border-border bg-elevated">
+        @if (addingVar()) {
+          <div class="space-y-3 border-b border-border/80 p-4">
+            <h3 class="text-sm font-medium text-fg">New variable</h3>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <ui-input
+                name="k"
+                label="Key *"
+                [(value)]="newVarKey"
+                class="min-w-0"
+                [placeholder]="'API_KEY'"
               />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              <ui-input
+                name="v"
+                label="Value"
+                [(value)]="newVarValue"
+                [placeholder]="'value or empty'"
               />
-            </svg>
-          </div>
-        } @else if (showDiff()) {
-          <div class="space-y-4">
-            <div class="flex gap-4 items-end">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Environment 1</label>
-                <select [(ngModel)]="diffEnv1" class="px-3 py-2 border border-gray-300 rounded-md">
-                  <option value="">Select...</option>
-                  @for (env of environments(); track env.name) {
-                    <option [value]="env.name">{{ env.name }}</option>
-                  }
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Environment 2</label>
-                <select [(ngModel)]="diffEnv2" class="px-3 py-2 border border-gray-300 rounded-md">
-                  <option value="">Select...</option>
-                  @for (env of environments(); track env.name) {
-                    <option [value]="env.name">{{ env.name }}</option>
-                  }
-                </select>
-              </div>
-              <button
-                (click)="runDiff()"
-                [disabled]="!diffEnv1() || !diffEnv2()"
-                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                Compare
-              </button>
+              <ui-input
+                name="d"
+                class="min-w-0 sm:col-span-2"
+                label="Description"
+                [(value)]="newVarDescription"
+              />
             </div>
-
-            @if (diffResults().length > 0) {
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Key
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Status
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      {{ diffEnv1() }}
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      {{ diffEnv2() }}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  @for (entry of diffResults(); track entry.key) {
-                    <tr>
-                      <td class="px-4 py-2 text-sm font-mono">{{ entry.key }}</td>
-                      <td class="px-4 py-2 text-sm" [class]="getStatusColor(entry.status)">
-                        {{ entry.status }}
-                      </td>
-                      <td class="px-4 py-2 text-sm font-mono">{{ entry.env1 || '—' }}</td>
-                      <td class="px-4 py-2 text-sm font-mono">{{ entry.env2 || '—' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
-          </div>
-        } @else if (showHistory()) {
-          <div class="space-y-4">
-            <button
-              (click)="loadHistory()"
-              class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors text-sm"
-            >
-              Load History
-            </button>
-
-            @if (history().length > 0) {
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Action
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Key
-                    </th>
-                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  @for (log of history(); track log.id) {
-                    <tr>
-                      <td class="px-4 py-2 text-sm">
-                        <span
-                          [class]="{
-                            'text-green-600': log.action === 'CREATE',
-                            'text-yellow-600': log.action === 'UPDATE',
-                            'text-red-600': log.action === 'DELETE',
-                          }"
-                          >{{ log.action }}</span
-                        >
-                      </td>
-                      <td class="px-4 py-2 text-sm font-mono">{{ log.key }}</td>
-                      <td class="px-4 py-2 text-sm text-gray-500">
-                        {{ log.createdAt | date: 'medium' }}
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            }
-          </div>
-        } @else if (showAddVar()) {
-          <div class="space-y-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <h3 class="font-medium text-gray-900">Add Variable</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Key *</label>
-                <input
-                  type="text"
-                  [(ngModel)]="newVarKey"
-                  name="newKey"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="API_KEY"
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-2 text-sm text-fg"
+                ><input
+                  type="checkbox"
+                  [ngModel]="newVarIsSecret()"
+                  (ngModelChange)="newVarIsSecret.set($event)"
                 />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
-                <input
-                  type="text"
-                  [(ngModel)]="newVarValue"
-                  name="newValue"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="value"
+                Secret
+              </label>
+              <label class="flex items-center gap-2 text-sm text-fg"
+                ><input
+                  type="checkbox"
+                  [ngModel]="newVarIsRequired()"
+                  (ngModelChange)="newVarIsRequired.set($event)"
                 />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <input
-                  type="text"
-                  [(ngModel)]="newVarDescription"
-                  name="newDesc"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="Optional description"
-                />
-              </div>
-              <div class="flex items-center gap-6">
-                <label class="flex items-center gap-2">
-                  <input type="checkbox" [(ngModel)]="newVarIsSecret" name="newIsSecret" />
-                  <span class="text-sm text-gray-700">Secret</span>
-                </label>
-                <label class="flex items-center gap-2">
-                  <input type="checkbox" [(ngModel)]="newVarIsRequired" name="newIsRequired" />
-                  <span class="text-sm text-gray-700">Required</span>
-                </label>
-              </div>
+                Required
+              </label>
             </div>
-            <div class="flex gap-3">
-              <button
-                (click)="showAddVar.set(false)"
-                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                (click)="saveVariables()"
-                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Add
-              </button>
+            <div class="flex flex-wrap gap-2">
+              <ui-button (click)="saveNewVariable()">Add</ui-button>
+              <ui-button variant="secondary" type="button" (click)="addingVar.set(false)">Cancel</ui-button>
             </div>
           </div>
-        } @else {
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead>
+        }
+        <table class="w-full min-w-[640px] divide-y divide-border text-left text-sm">
+          <thead>
+            <tr class="text-xs text-fg-muted">
+              <th class="p-3 font-medium">Key</th>
+              <th class="p-3 font-medium">Value</th>
+              <th class="p-3 font-medium">Flags</th>
+              <th class="p-3 font-medium">Description</th>
+              <th class="w-px p-3 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading() && !variables().length) {
               <tr>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Key</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                  Value
-                </th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                  Flags
-                </th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                  Description
-                </th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
+                <td colspan="5" class="p-8 text-center text-fg-muted">Loading…</td>
               </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              @for (variable of variables(); track variable.id) {
-                <tr>
-                  <td class="px-4 py-2 text-sm font-mono">{{ variable.key }}</td>
-                  <td class="px-4 py-2 text-sm font-mono">
+            } @else {
+              @for (variable of filteredVariables(); track variable.id) {
+                <tr class="group transition-ui hover:bg-surface/50">
+                  <td class="p-3">
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-mono text-xs text-fg">{{ variable.key }}</span>
+                      <button
+                        type="button"
+                        class="rounded p-0.5 text-fg-muted opacity-0 transition-ui hover:bg-surface hover:text-fg group-hover:opacity-100"
+                        (click)="copyToClipboard(variable.key)"
+                        title="Copy key"
+                        aria-label="Copy key"
+                      >
+                        <lucide-icon class="h-3.5 w-3.5" name="copy" [size]="14" />
+                      </button>
+                    </div>
+                  </td>
+                  <td class="max-w-xs p-3 font-mono text-xs break-all">
                     @if (variable.isSecret) {
-                      <span class="cursor-pointer" (click)="toggleSecret(variable.id)">
-                        {{ getDisplayValue(variable) }}
-                      </span>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 text-left text-fg"
+                        (click)="toggleSecret(variable.id)"
+                        title="Click to show or hide"
+                      >
+                        <span class="min-w-0 break-all">{{
+                          getDisplayValue(variable)
+                        }}</span>
+                        <lucide-icon
+                          [name]="showSecretValues().has(variable.id) ? 'eye-off' : 'eye'"
+                          [size]="16"
+                        />
+                      </button>
                     } @else {
                       <input
+                        class="w-full min-w-0 border-b border-transparent bg-transparent text-xs focus:border-accent focus:outline-none"
                         type="text"
                         [value]="variable.value || ''"
                         (change)="updateVariableValue(variable, $any($event.target).value)"
-                        class="w-full bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none"
                       />
                     }
                   </td>
-                  <td class="px-4 py-2 text-sm">
-                    @if (variable.isSecret) {
-                      <span class="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded"
-                        >Secret</span
-                      >
-                    }
-                    @if (variable.isRequired) {
-                      <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded ml-1"
-                        >Required</span
-                      >
-                    }
+                  <td class="p-3">
+                    <div class="flex flex-wrap gap-1">
+                      @if (variable.isSecret) {
+                        <ui-badge [variant]="'secret'">Secret</ui-badge>
+                      }
+                      @if (variable.isRequired) {
+                        <ui-badge [variant]="'required'">Required</ui-badge>
+                      }
+                    </div>
                   </td>
-                  <td class="px-4 py-2 text-sm text-gray-500">{{ variable.description || '—' }}</td>
-                  <td class="px-4 py-2 text-sm">
+                  <td class="p-3 text-fg-muted">{{ variable.description || '—' }}</td>
+                  <td class="p-2">
                     <button
+                      type="button"
+                      class="text-danger/90 hover:underline p-1"
                       (click)="deleteVariable(variable)"
-                      class="text-red-600 hover:text-red-700"
                     >
                       Delete
                     </button>
                   </td>
                 </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="p-0">
+                    <ui-empty-state
+                      [title]="'No variables'"
+                      [description]="'Add your first key for ' + (activeEnv() || '') + '.'"
+                      [icon]="'braces'"
+                    />
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (activeTab() === 'diff') {
+      <div class="space-y-4 rounded-xl border border-border bg-elevated p-4">
+        <div class="flex flex-wrap items-end gap-3">
+          <div>
+            <label class="mb-1 block text-xs font-medium text-fg-muted">Environment 1</label>
+            <select
+              [ngModel]="diffEnv1()"
+              (ngModelChange)="diffEnv1.set($event)"
+              class="h-9 rounded-lg border border-border bg-elevated px-2 text-sm"
+            >
+              <option value="">—</option>
+              @for (e of environments(); track e.id) {
+                <option [value]="e.name">{{ e.name }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-fg-muted">Environment 2</label>
+            <select
+              [ngModel]="diffEnv2()"
+              (ngModelChange)="diffEnv2.set($event)"
+              class="h-9 rounded-lg border border-border bg-elevated px-2 text-sm"
+            >
+              <option value="">—</option>
+              @for (e of environments(); track e.id) {
+                <option [value]="e.name">{{ e.name }}</option>
+              }
+            </select>
+          </div>
+          <ui-button
+            (click)="runDiff()"
+            [disabled]="!diffEnv1() || !diffEnv2() || diffLoading()"
+            [loading]="diffLoading()"
+            [size]="'md'"
+            >Compare</ui-button
+          >
+        </div>
+        @if (diffResults().length) {
+          <div class="flex flex-wrap items-center gap-2 text-xs text-fg-muted" role="status">
+            <span class="rounded border border-border/50 px-2 py-0.5"
+              >+{{ diffSummary().added }} added</span
+            >
+            <span class="rounded border border-border/50 px-2 py-0.5"
+              >~{{ diffSummary().modified }} changed</span
+            >
+            <span class="rounded border border-border/50 px-2 py-0.5"
+              >-{{ diffSummary().removed }} removed</span
+            >
+          </div>
+        }
+        <div class="max-h-[28rem] overflow-auto rounded-lg border border-border/60">
+          <table class="w-full min-w-[640px] text-left text-xs">
+            <thead class="bg-surface/80 text-fg-muted">
+              <tr>
+                <th class="p-2">Key</th>
+                <th class="p-2">Status</th>
+                <th class="p-2 font-mono">{{ diffEnv1() || 'A' }}</th>
+                <th class="p-2 font-mono">{{ diffEnv2() || 'B' }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of visibleDiffRows(); track entry.key) {
+                <tr [class]="'border-t border-border/40 ' + rowClass(entry.status)">
+                  <td class="p-2 font-mono">{{ entry.key }}</td>
+                  <td
+                    [class]="statusTextClass(entry.status)"
+                    class="p-2"
+                  >{{ entry.status }}</td>
+                  <td class="p-2 font-mono" [attr.title]="entry.env1 || ''">
+                    <span class="line-clamp-2">{{ entry.env1 || '—' }}</span>
+                  </td>
+                  <td class="p-2 font-mono" [attr.title]="entry.env2 || ''">
+                    <span class="line-clamp-2">{{ entry.env2 || '—' }}</span>
+                  </td>
+                </tr>
               }
             </tbody>
           </table>
-
-          @if (variables().length === 0) {
-            <div class="text-center py-8 text-gray-500">No variables in this environment yet</div>
-          }
-        }
-      </div>
-    }
-  </main>
-
-  @if (showAddEnv()) {
-    <div
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      (click)="showAddEnv.set(false)"
-    >
-      <div
-        class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
-        (click)="$event.stopPropagation()"
-      >
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Environment</h3>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              [(ngModel)]="newEnvName"
-              name="newEnvName"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md"
-              placeholder="e.g. testing"
-            />
-          </div>
-          <div class="flex gap-3">
-            <button
-              (click)="showAddEnv.set(false)"
-              class="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              (click)="addEnvironment()"
-              class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Add
-            </button>
-          </div>
         </div>
       </div>
-    </div>
-  }
+    } @else if (activeTab() === 'history') {
+      <div class="space-y-4">
+        <ui-button variant="secondary" (click)="loadHistory(false)" [loading]="historyLoading()">
+          Load history
+        </ui-button>
+        <div class="relative pl-2">
+          @if (history().length === 0) {
+            <p class="text-sm text-fg-muted">No entries loaded for this environment.</p>
+          } @else {
+            <ol class="space-y-0 border-l-2 border-border/80 pl-4">
+              @for (log of history(); track log.id) {
+                <li class="relative -ml-0.5 pb-4 pt-0 pl-0 last:pb-0">
+                  <div
+                    class="absolute -left-1.5 top-1.5 h-2 w-2 -translate-x-[0.2rem] rounded-full bg-accent ring-2 ring-elevated"
+                    aria-hidden="true"
+                  ></div>
+                  <div class="ml-0 rounded-lg border border-border/60 bg-elevated p-3 text-sm">
+                    <div class="mb-0.5 flex items-center justify-between gap-2">
+                      <span [class]="'font-mono text-xs ' + logActionClass(log.action)">
+                        {{ log.action }}
+                      </span>
+                      <time class="text-xs text-fg-muted" [attr.title]="log.createdAt | date: 'full'">
+                        {{ log.createdAt | relativeTime }}
+                      </time>
+                    </div>
+                    <p class="font-mono text-xs text-fg">{{ log.key }}</p>
+                    <p class="text-xs text-fg-muted">actor {{ (log.actorId | slice: 0 : 8) }}…</p>
+                  </div>
+                </li>
+              }
+            </ol>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="text-fg-muted">Select an environment in the list.</p>
+    }
+  </div>
 </div>
+
+<ui-modal
+  [title]="'Add environment'"
+  [showClose]="true"
+  [(open)]="showAddEnv"
+>
+  <form (ngSubmit)="addEnvironment()" class="space-y-4">
+    <ui-input
+      label="Name"
+      name="envn"
+      [(value)]="newEnvName"
+      [placeholder]="'e.g. testing'"
+    />
+    <div class="flex justify-end gap-2">
+      <ui-button type="button" variant="secondary" (click)="showAddEnv.set(false)">Cancel</ui-button>
+      <ui-button [type]="'submit'">Add</ui-button>
+    </div>
+  </form>
+</ui-modal>
+
+<ui-modal
+  [title]="'Delete environment?'"
+  [showClose]="true"
+  [(open)]="showDeleteEnvModal"
+>
+  <p class="text-sm text-fg-muted">
+    This removes <span class="font-mono text-fg">{{ envNameToDelete() }}</span> and its variables. This
+    cannot be undone.
+  </p>
+  <div class="mt-4 flex justify-end gap-2">
+    <ui-button type="button" variant="secondary" (click)="showDeleteEnvModal.set(false)"
+      >Cancel</ui-button
+    >
+    <ui-button type="button" variant="danger" (click)="confirmDeleteEnv()">Delete</ui-button>
+  </div>
+</ui-modal>

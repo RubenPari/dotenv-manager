@@ -1,24 +1,46 @@
 /**
  * Project editor page
  * @module web/app/pages/project-editor/project-editor.component
- * @description View/edit project environments and variables, plus diff and history tools.
  */
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DatePipe, SlicePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, model, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProjectService } from '../../services/project.service';
+import { ToastService } from '../../services/toast.service';
 import { AuditLog, DiffEntry, Environment, Project, Variable, VariableDto } from '../../models';
+import { UiBadgeComponent } from '../../components/ui-badge.component';
+import { UiButtonComponent } from '../../components/ui-button.component';
+import { UiEmptyStateComponent } from '../../components/ui-empty-state.component';
+import { UiInputComponent } from '../../components/ui-input.component';
+import { UiModalComponent } from '../../components/ui-modal.component';
+import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
+
+type EditorTab = 'variables' | 'diff' | 'history';
 
 @Component({
   selector: 'app-project-editor',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [
+    FormsModule,
+    DatePipe,
+    SlicePipe,
+    LucideAngularModule,
+    UiBadgeComponent,
+    UiButtonComponent,
+    UiEmptyStateComponent,
+    UiInputComponent,
+    UiModalComponent,
+    RelativeTimePipe,
+  ],
   templateUrl: './project-editor.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectEditorComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly projectService = inject(ProjectService);
+  private readonly toasts = inject(ToastService);
+  private readonly router = inject(Router);
 
   protected readonly project = signal<Project | null>(null);
   protected readonly environments = signal<Environment[]>([]);
@@ -27,24 +49,70 @@ export class ProjectEditorComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal('');
 
-  protected readonly showAddVar = signal(false);
-  protected readonly showDiff = signal(false);
-  protected readonly showHistory = signal(false);
-  protected readonly showAddEnv = signal(false);
+  protected readonly activeTab = signal<EditorTab>('variables');
+  protected readonly keyFilter = model('');
+  protected readonly addingVar = model(false);
+  protected readonly showAddEnv = model(false);
+  protected readonly newEnvName = model('');
 
-  protected readonly diffEnv1 = signal('');
-  protected readonly diffEnv2 = signal('');
+  protected readonly showDeleteEnvModal = model(false);
+  protected readonly envNameToDelete = signal<string | null>(null);
+
+  protected readonly diffEnv1 = model('');
+  protected readonly diffEnv2 = model('');
   protected readonly diffResults = signal<DiffEntry[]>([]);
-  protected readonly history = signal<AuditLog[]>([]);
+  protected readonly hideUnchanged = model(false);
+  protected readonly diffLoading = signal(false);
 
-  protected readonly newVarKey = signal('');
-  protected readonly newVarValue = signal('');
-  protected readonly newVarDescription = signal('');
-  protected readonly newVarIsSecret = signal(false);
-  protected readonly newVarIsRequired = signal(false);
-  protected readonly newEnvName = signal('');
+  protected readonly history = signal<AuditLog[]>([]);
+  protected readonly historyLimit = signal(20);
+  protected readonly historyLoading = signal(false);
+  protected readonly hasMoreHistory = signal(false);
+
+  protected readonly newVarKey = model('');
+  protected readonly newVarValue = model('');
+  protected readonly newVarDescription = model('');
+  protected readonly newVarIsSecret = model(false);
+  protected readonly newVarIsRequired = model(false);
 
   protected readonly showSecretValues = signal<ReadonlySet<string>>(new Set<string>());
+
+  protected readonly filteredVariables = computed(() => {
+    const q = this.keyFilter().trim().toLowerCase();
+    const vars = this.variables();
+    if (!q) {
+      return vars;
+    }
+    return vars.filter(
+      (v) =>
+        v.key.toLowerCase().includes(q) || (v.description && v.description.toLowerCase().includes(q)),
+    );
+  });
+
+  protected readonly diffSummary = computed(() => {
+    const r = this.diffResults();
+    let a = 0;
+    let m = 0;
+    let d = 0;
+    for (const e of r) {
+      if (e.status === 'added') {
+        a += 1;
+      } else if (e.status === 'modified') {
+        m += 1;
+      } else if (e.status === 'removed') {
+        d += 1;
+      }
+    }
+    return { added: a, modified: m, removed: d, total: r.length };
+  });
+
+  protected readonly visibleDiffRows = computed(() => {
+    const rows = this.diffResults();
+    if (this.hideUnchanged()) {
+      return rows.filter((e) => e.status !== 'unchanged');
+    }
+    return rows;
+  });
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug');
@@ -53,9 +121,6 @@ export class ProjectEditorComponent implements OnInit {
     }
   }
 
-  /**
-   * Load project by slug from the project list and initialize the active environment.
-   */
   protected loadProject(slug: string): void {
     this.loading.set(true);
     this.projectService.getProjects().subscribe({
@@ -64,6 +129,7 @@ export class ProjectEditorComponent implements OnInit {
         if (!project) {
           this.error.set('Project not found');
           this.loading.set(false);
+          this.toasts.show('Project not found', 'error');
           return;
         }
         this.project.set(project);
@@ -79,17 +145,17 @@ export class ProjectEditorComponent implements OnInit {
       error: () => {
         this.loading.set(false);
         this.error.set('Failed to load project');
+        this.toasts.show('Failed to load project', 'error');
       },
     });
   }
 
-  /**
-   * Load variables for the currently selected environment.
-   */
   protected loadVariables(): void {
     const project = this.project();
     const activeEnv = this.activeEnv();
-    if (!project || !activeEnv) return;
+    if (!project || !activeEnv) {
+      return;
+    }
 
     this.loading.set(true);
     this.projectService.getVariables(project.id, activeEnv).subscribe({
@@ -100,21 +166,28 @@ export class ProjectEditorComponent implements OnInit {
       error: () => {
         this.loading.set(false);
         this.error.set('Failed to load variables');
+        this.toasts.show('Failed to load variables', 'error');
       },
     });
   }
 
-  /**
-   * Switch active environment in the UI.
-   */
   protected selectEnv(envName: string): void {
     this.activeEnv.set(envName);
     this.loadVariables();
+    this.history.set([]);
   }
 
-  /**
-   * Toggle whether a secret variable value should be shown in the UI.
-   */
+  protected setTab(t: EditorTab): void {
+    this.activeTab.set(t);
+    if (t !== 'variables') {
+      this.addingVar.set(false);
+    }
+  }
+
+  protected toggleAddVar(): void {
+    this.addingVar.update((a) => !a);
+  }
+
   protected toggleSecret(id: string): void {
     this.showSecretValues.update((current) => {
       const next = new Set(current);
@@ -127,37 +200,18 @@ export class ProjectEditorComponent implements OnInit {
     });
   }
 
-  /**
-   * Toggle one of the side panels (diff/history/add var) ensuring the others stay closed.
-   */
-  protected togglePanel(panel: 'diff' | 'history' | 'addVar'): void {
-    if (panel === 'diff') {
-      this.showDiff.update((v) => !v);
-      this.showHistory.set(false);
-      this.showAddVar.set(false);
-    } else if (panel === 'history') {
-      this.showHistory.update((v) => !v);
-      this.showDiff.set(false);
-      this.showAddVar.set(false);
-    } else {
-      this.showAddVar.set(true);
-      this.showDiff.set(false);
-      this.showHistory.set(false);
-    }
-  }
-
-  /**
-   * Add a new variable by submitting a full variables upsert payload.
-   */
-  protected saveVariables(): void {
+  protected saveNewVariable(): void {
     const project = this.project();
     const activeEnv = this.activeEnv();
     const key = this.newVarKey().trim();
-    if (!project || !activeEnv || !key) return;
+    if (!project || !activeEnv || !key) {
+      this.toasts.show('Key is required', 'error');
+      return;
+    }
 
     const varDto: VariableDto = {
       key,
-      value: this.newVarValue(),
+      value: this.newVarValue() || null,
       isSecret: this.newVarIsSecret(),
       isRequired: this.newVarIsRequired(),
       description: this.newVarDescription() || undefined,
@@ -176,23 +230,27 @@ export class ProjectEditorComponent implements OnInit {
 
     this.projectService.updateVariables(project.id, activeEnv, updatedVars).subscribe({
       next: () => {
-        this.showAddVar.set(false);
-        this.resetNewVar();
+        this.addingVar.set(false);
+        this.newVarKey.set('');
+        this.newVarValue.set('');
+        this.newVarDescription.set('');
+        this.newVarIsSecret.set(false);
+        this.newVarIsRequired.set(false);
         this.loadVariables();
+        this.toasts.show('Variable added', 'success');
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'Failed to add variable');
+        this.toasts.show(err.error?.message || 'Failed to add variable', 'error');
       },
     });
   }
 
-  /**
-   * Delete a variable by sending an updated variable list (full replace semantics).
-   */
   protected deleteVariable(variable: Variable): void {
     const project = this.project();
     const activeEnv = this.activeEnv();
-    if (!project || !activeEnv) return;
+    if (!project || !activeEnv) {
+      return;
+    }
 
     const updatedVars: VariableDto[] = this.variables()
       .filter((v) => v.key !== variable.key)
@@ -205,20 +263,22 @@ export class ProjectEditorComponent implements OnInit {
       }));
 
     this.projectService.updateVariables(project.id, activeEnv, updatedVars).subscribe({
-      next: () => this.loadVariables(),
+      next: () => {
+        this.loadVariables();
+        this.toasts.show('Variable removed', 'info');
+      },
       error: (err) => {
-        this.error.set(err.error?.message || 'Failed to delete variable');
+        this.toasts.show(err.error?.message || 'Failed to delete variable', 'error');
       },
     });
   }
 
-  /**
-   * Persist an edited variable value by resending the updated variable list.
-   */
   protected updateVariableValue(variable: Variable, newValue: string): void {
     const project = this.project();
     const activeEnv = this.activeEnv();
-    if (!project || !activeEnv) return;
+    if (!project || !activeEnv) {
+      return;
+    }
 
     const updatedVars: VariableDto[] = this.variables().map((v) => ({
       key: v.key,
@@ -229,75 +289,122 @@ export class ProjectEditorComponent implements OnInit {
     }));
 
     this.projectService.updateVariables(project.id, activeEnv, updatedVars).subscribe({
-      next: () => this.loadVariables(),
+      next: () => {
+        this.loadVariables();
+      },
       error: (err) => {
-        this.error.set(err.error?.message || 'Failed to update variable');
+        this.toasts.show(err.error?.message || 'Failed to update variable', 'error');
       },
     });
   }
 
-  /**
-   * Run an environment diff using the selected diff envs.
-   */
   protected runDiff(): void {
     const project = this.project();
     const env1 = this.diffEnv1();
     const env2 = this.diffEnv2();
-    if (!project || !env1 || !env2) return;
+    if (!project || !env1 || !env2) {
+      this.toasts.show('Select two environments', 'error');
+      return;
+    }
 
+    this.diffLoading.set(true);
     this.projectService.diffEnvironments(project.id, env1, env2).subscribe({
       next: (results) => {
         this.diffResults.set(results);
-        this.showDiff.set(true);
+        this.diffLoading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'Failed to diff environments');
+        this.diffLoading.set(false);
+        this.toasts.show(err.error?.message || 'Failed to compare', 'error');
       },
     });
   }
 
-  /**
-   * Load environment audit history.
-   */
-  protected loadHistory(): void {
+  protected loadHistory(append: boolean = false): void {
     const project = this.project();
     const activeEnv = this.activeEnv();
-    if (!project || !activeEnv) return;
+    if (!project || !activeEnv) {
+      return;
+    }
 
-    this.projectService.getHistory(project.id, activeEnv).subscribe({
+    if (!append) {
+      this.historyLimit.set(20);
+    } else {
+      this.historyLimit.update((l) => l + 20);
+    }
+    this.historyLoading.set(true);
+    const limit = this.historyLimit();
+    this.projectService.getHistory(project.id, activeEnv, limit).subscribe({
       next: (logs) => {
         this.history.set(logs);
-        this.showHistory.set(true);
+        this.hasMoreHistory.set(logs.length > 0 && logs.length === limit);
+        this.historyLoading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'Failed to load history');
+        this.historyLoading.set(false);
+        this.toasts.show(err.error?.message || 'Failed to load history', 'error');
       },
     });
   }
 
-  /**
-   * Create a new environment for this project.
-   */
   protected addEnvironment(): void {
     const project = this.project();
     const name = this.newEnvName().trim();
-    if (!project || !name) return;
+    if (!project || !name) {
+      this.toasts.show('Environment name is required', 'error');
+      return;
+    }
 
     this.projectService.createEnvironment(project.id, { name }).subscribe({
       next: (env) => {
         this.environments.update((envs) => [...envs, env]);
         this.showAddEnv.set(false);
         this.newEnvName.set('');
+        this.toasts.show('Environment created', 'success');
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'Failed to create environment');
+        this.toasts.show(err.error?.message || 'Failed to create environment', 'error');
       },
     });
   }
 
-  /**
-   * Determine which value to show for a variable (masked for secrets by default).
-   */
+  protected openDeleteEnv(name: string): void {
+    this.envNameToDelete.set(name);
+    this.showDeleteEnvModal.set(true);
+  }
+
+  protected confirmDeleteEnv(): void {
+    const project = this.project();
+    const name = this.envNameToDelete();
+    if (!project || !name) {
+      return;
+    }
+    this.projectService.deleteEnvironment(project.id, name).subscribe({
+      next: () => {
+        this.showDeleteEnvModal.set(false);
+        this.envNameToDelete.set(null);
+        this.environments.update((e) => e.filter((x) => x.name !== name));
+        const remaining = this.environments();
+        if (this.activeEnv() === name) {
+          this.activeEnv.set(remaining[0]?.name ?? null);
+          if (remaining[0]) {
+            this.loadVariables();
+          } else {
+            this.variables.set([]);
+            this.loading.set(false);
+          }
+        }
+        this.toasts.show('Environment deleted', 'info');
+        if (remaining.length === 0) {
+          void this.router.navigate(['/dashboard']);
+        }
+      },
+      error: (err) => {
+        this.toasts.show(err.error?.message || 'Failed to delete environment', 'error');
+      },
+    });
+  }
+
   protected getDisplayValue(variable: Variable): string {
     if (!variable.isSecret) {
       return variable.value || '';
@@ -305,27 +412,51 @@ export class ProjectEditorComponent implements OnInit {
     return this.showSecretValues().has(variable.id) ? variable.value || '[encrypted]' : '••••••••';
   }
 
-  /**
-   * Map a diff status to a Tailwind text color class.
-   */
-  protected getStatusColor(status: string): string {
+  protected rowClass(status: string): string {
     switch (status) {
       case 'added':
-        return 'text-green-600';
+        return 'bg-emerald-500/5';
       case 'removed':
-        return 'text-red-600';
+        return 'bg-rose-500/5';
       case 'modified':
-        return 'text-yellow-600';
+        return 'bg-amber-500/5';
       default:
-        return 'text-gray-400';
+        return '';
     }
   }
 
-  private resetNewVar(): void {
-    this.newVarKey.set('');
-    this.newVarValue.set('');
-    this.newVarDescription.set('');
-    this.newVarIsSecret.set(false);
-    this.newVarIsRequired.set(false);
+  protected statusTextClass(status: string): string {
+    switch (status) {
+      case 'added':
+        return 'text-success';
+      case 'removed':
+        return 'text-danger';
+      case 'modified':
+        return 'text-warn';
+      default:
+        return 'text-fg-muted';
+    }
+  }
+
+  protected async copyToClipboard(text: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      this.toasts.show('Copied', 'success');
+    } catch {
+      this.toasts.show('Copy failed', 'error');
+    }
+  }
+
+  protected logActionClass(action: string): string {
+    if (action === 'CREATE') {
+      return 'text-success';
+    }
+    if (action === 'UPDATE') {
+      return 'text-warn';
+    }
+    if (action === 'DELETE') {
+      return 'text-danger';
+    }
+    return 'text-fg-muted';
   }
 }
