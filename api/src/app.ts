@@ -26,6 +26,10 @@ export function createApp() {
   app.use(express.json());
   app.use(cookieParser());
 
+  app.get('/api/v1/healthz', (_req, res) => {
+    res.status(200).json({ ok: true });
+  });
+
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/projects', projectsRouter);
 
