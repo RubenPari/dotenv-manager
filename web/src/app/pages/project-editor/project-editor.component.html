@@ -421,19 +421,14 @@
   </form>
 </ui-modal>
 
-<ui-modal
+<ui-confirm-dialog
   [title]="'Delete environment?'"
-  [showClose]="true"
+  [confirmLabel]="'Delete'"
+  variant="danger"
   [(open)]="showDeleteEnvModal"
+  (confirm)="confirmDeleteEnv()"
+  (cancel)="showDeleteEnvModal.set(false)"
 >
-  <p class="text-sm text-fg-muted">
-    This removes <span class="font-mono text-fg">{{ envNameToDelete() }}</span> and its variables. This
-    cannot be undone.
-  </p>
-  <div class="mt-4 flex justify-end gap-2">
-    <ui-button type="button" variant="secondary" (click)="showDeleteEnvModal.set(false)"
-      >Cancel</ui-button
-    >
-    <ui-button type="button" variant="danger" (click)="confirmDeleteEnv()">Delete</ui-button>
-  </div>
-</ui-modal>
+  This removes <span class="font-mono text-fg">{{ envNameToDelete() }}</span> and its variables. This
+  cannot be undone.
+</ui-confirm-dialog>

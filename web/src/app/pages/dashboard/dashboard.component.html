@@ -182,16 +182,16 @@
   </form>
 </ui-modal>
 
-<ui-modal [title]="'Delete project'" [showClose]="true" [(open)]="showDeleteModal">
-  <p class="text-sm text-fg-muted">
-    Delete <span class="font-mono text-fg">{{ projectToDelete()?.name }}</span>? This cannot be
-    undone.
-  </p>
-  <div class="mt-4 flex justify-end gap-2">
-    <ui-button type="button" variant="secondary" (click)="showDeleteModal.set(false)">Cancel</ui-button>
-    <ui-button type="button" variant="danger" (click)="confirmDelete()">Delete</ui-button>
-  </div>
-</ui-modal>
+<ui-confirm-dialog
+  [title]="'Delete project?'"
+  [confirmLabel]="'Delete'"
+  variant="danger"
+  [(open)]="showDeleteModal"
+  (confirm)="confirmDelete()"
+  (cancel)="showDeleteModal.set(false)"
+>
+  Delete <span class="font-mono text-fg">{{ projectToDelete()?.name }}</span>? This cannot be undone.
+</ui-confirm-dialog>
 
 <ui-modal [title]="'Rename project'" [showClose]="true" [(open)]="showRenameModal">
   <form (submit)="$event.preventDefault(); saveRename()" class="space-y-4">

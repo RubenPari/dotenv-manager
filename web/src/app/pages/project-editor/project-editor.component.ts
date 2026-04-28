@@ -15,6 +15,7 @@ import { UiButtonComponent } from '../../components/ui-button.component';
 import { UiEmptyStateComponent } from '../../components/ui-empty-state.component';
 import { UiInputComponent } from '../../components/ui-input.component';
 import { UiModalComponent } from '../../components/ui-modal.component';
+import { UiConfirmDialogComponent } from '../../components/ui-confirm-dialog.component';
 import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
 
 type EditorTab = 'variables' | 'diff' | 'history';
@@ -31,6 +32,7 @@ type EditorTab = 'variables' | 'diff' | 'history';
     UiEmptyStateComponent,
     UiInputComponent,
     UiModalComponent,
+    UiConfirmDialogComponent,
     RelativeTimePipe,
   ],
   templateUrl: './project-editor.component.html',

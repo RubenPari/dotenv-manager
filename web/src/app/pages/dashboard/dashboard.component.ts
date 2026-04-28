@@ -21,6 +21,7 @@ import { UiButtonComponent } from '../../components/ui-button.component';
 import { UiCardComponent } from '../../components/ui-card.component';
 import { UiInputComponent } from '../../components/ui-input.component';
 import { UiModalComponent } from '../../components/ui-modal.component';
+import { UiConfirmDialogComponent } from '../../components/ui-confirm-dialog.component';
 import { UiEmptyStateComponent } from '../../components/ui-empty-state.component';
 import { UiSkeletonComponent } from '../../components/ui-skeleton.component';
 import { UiBadgeComponent } from '../../components/ui-badge.component';
@@ -34,6 +35,7 @@ import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
     UiCardComponent,
     UiInputComponent,
     UiModalComponent,
+    UiConfirmDialogComponent,
     UiEmptyStateComponent,
     UiSkeletonComponent,
     UiBadgeComponent,
