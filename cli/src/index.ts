@@ -15,9 +15,9 @@ import { diffAction } from './commands/diff';
 import { exportAction } from './commands/export';
 import { importAction } from './commands/import';
 import { historyAction } from './commands/history';
+import packageJson from '../package.json';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { version } = require('../package.json') as { version: string };
+const { version } = packageJson;
 
 const program = new Command();
 
