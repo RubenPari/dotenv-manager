@@ -92,3 +92,17 @@ export type CreateEnvRequest = z.infer<typeof CreateEnvRequestSchema>;
 export type VariableInput = z.infer<typeof VariableInputSchema>;
 export type VariableResponse = z.infer<typeof VariableResponseSchema>;
 export type DiffEntry = z.infer<typeof DiffEntrySchema>;
+
+/**
+ * Audit log entry returned by the API.
+ */
+export const AuditLogSchema = z.object({
+  id: z.string(),
+  envId: z.string(),
+  action: z.string(),
+  key: z.string(),
+  actorId: z.string(),
+  createdAt: z.string(),
+});
+
+export type AuditLog = z.infer<typeof AuditLogSchema>;
