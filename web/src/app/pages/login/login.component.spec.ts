@@ -21,6 +21,7 @@ describe('LoginComponent', () => {
     }).compileComponents();
 
     const fixture = TestBed.createComponent(LoginComponent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = fixture.componentInstance as any;
 
     c.email.set('');
@@ -45,6 +46,7 @@ describe('LoginComponent', () => {
     }).compileComponents();
 
     const fixture = TestBed.createComponent(LoginComponent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = fixture.componentInstance as any;
 
     c.email.set('a@example.com');
@@ -71,6 +73,7 @@ describe('LoginComponent', () => {
     }).compileComponents();
 
     const fixture = TestBed.createComponent(LoginComponent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = fixture.componentInstance as any;
 
     c.email.set('a@example.com');
@@ -81,4 +84,3 @@ describe('LoginComponent', () => {
     expect(c.loading()).toBe(false);
   });
 });
-

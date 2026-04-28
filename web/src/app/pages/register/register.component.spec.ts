@@ -19,6 +19,7 @@ describe('RegisterComponent', () => {
     }).compileComponents();
 
     const fixture = TestBed.createComponent(RegisterComponent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = fixture.componentInstance as any;
 
     c.password.set('a');
@@ -42,6 +43,7 @@ describe('RegisterComponent', () => {
     }).compileComponents();
 
     const fixture = TestBed.createComponent(RegisterComponent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = fixture.componentInstance as any;
 
     c.email.set('a@example.com');
@@ -67,6 +69,7 @@ describe('RegisterComponent', () => {
     }).compileComponents();
 
     const fixture = TestBed.createComponent(RegisterComponent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = fixture.componentInstance as any;
 
     c.email.set('a@example.com');
@@ -95,6 +98,7 @@ describe('RegisterComponent', () => {
     }).compileComponents();
 
     const fixture = TestBed.createComponent(RegisterComponent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = fixture.componentInstance as any;
 
     c.email.set('a@example.com');
@@ -107,4 +111,3 @@ describe('RegisterComponent', () => {
     expect(c.loading()).toBe(false);
   });
 });
-
