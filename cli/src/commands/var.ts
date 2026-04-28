@@ -5,11 +5,10 @@
  */
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { getActiveEnv } from '../config';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 import type { VariableResponse, VariableInput } from '@rubenpari/dotenv-cli-shared';
 
 /**
@@ -25,9 +24,7 @@ export async function varAddAction(key: string): Promise<void> {
     { type: 'input', name: 'description', message: 'Description (optional):' },
   ]);
 
-  const spinner = ora('Adding variable...').start();
-
-  try {
+  await withSpinner('Adding variable...', async (spinner) => {
     const api = getApiClient();
     const env = getActiveEnv(localConfig);
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
@@ -62,10 +59,7 @@ export async function varAddAction(key: string): Promise<void> {
     await api.put(`/api/v1/projects/${projectId}/envs/${env}`, variables);
 
     spinner.succeed(chalk.green(`${key} added${isSecret ? ' (encrypted)' : ''}`));
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to add variable')));
-    process.exit(1);
-  }
+  });
 }
 
 /**
@@ -75,9 +69,7 @@ export async function varAddAction(key: string): Promise<void> {
 export async function varGetAction(key: string): Promise<void> {
   const localConfig = requireLocalConfig();
 
-  const spinner = ora('Fetching variable...').start();
-
-  try {
+  await withSpinner('Fetching variable...', async (spinner) => {
     const api = getApiClient();
     const env = getActiveEnv(localConfig);
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
@@ -108,10 +100,7 @@ export async function varGetAction(key: string): Promise<void> {
     } else {
       console.log(`${key}=${variable.value}`);
     }
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to fetch variable')));
-    process.exit(1);
-  }
+  });
 }
 
 /**
@@ -120,11 +109,9 @@ export async function varGetAction(key: string): Promise<void> {
  */
 export async function varListAction(opts: { env?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
-
-  const spinner = ora('Loading variables...').start();
   const env = getActiveEnv(localConfig, opts.env);
 
-  try {
+  await withSpinner('Loading variables...', async (spinner) => {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
     const { data: variables } = await api.get<VariableResponse[]>(
@@ -147,8 +134,5 @@ export async function varListAction(opts: { env?: string }): Promise<void> {
       console.log(`  ${key}${value}`);
     }
     console.log();
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to load variables')));
-    process.exit(1);
-  }
+  });
 }

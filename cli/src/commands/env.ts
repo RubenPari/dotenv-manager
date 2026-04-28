@@ -4,11 +4,10 @@
  * @description Commands to list and select the active environment for the current project.
  */
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient } from '../api/client';
 import { writeLocalConfig, getActiveEnv } from '../config';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 import type { Project } from '@rubenpari/dotenv-cli-shared';
 
 /**
@@ -17,9 +16,7 @@ import type { Project } from '@rubenpari/dotenv-cli-shared';
 export async function envListAction(): Promise<void> {
   const localConfig = requireLocalConfig();
 
-  const spinner = ora('Loading environments...').start();
-
-  try {
+  await withSpinner('Loading environments...', async (spinner) => {
     const api = getApiClient();
     const { data: projects } = await api.get<Project[]>('/api/v1/projects');
     const project = projects.find((p) => p.slug === localConfig.projectSlug);
@@ -36,10 +33,7 @@ export async function envListAction(): Promise<void> {
       console.log(`  ${env.name}${active}`);
     }
     console.log();
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to load environments')));
-    process.exit(1);
-  }
+  });
 }
 
 /**

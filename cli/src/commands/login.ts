@@ -5,10 +5,9 @@
  */
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import ora from 'ora';
 import { getPublicClient } from '../api/client';
 import { writeCredentials } from '../config';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 import type { LoginResponse } from '@rubenpari/dotenv-cli-shared';
 
 /**
@@ -25,9 +24,7 @@ export async function loginAction(): Promise<void> {
     { type: 'password', name: 'password', message: 'Password:', mask: '*' },
   ]);
 
-  const spinner = ora('Authenticating...').start();
-
-  try {
+  await withSpinner('Authenticating...', async (spinner) => {
     const client = getPublicClient();
     const { data } = await client.post<LoginResponse>('/api/v1/auth/login', { email, password });
 
@@ -37,8 +34,5 @@ export async function loginAction(): Promise<void> {
     });
 
     spinner.succeed(chalk.green(`Authenticated as ${email}`));
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Authentication failed')));
-    process.exit(1);
-  }
+  });
 }

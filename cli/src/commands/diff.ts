@@ -4,10 +4,9 @@
  * @description Compares two environments and prints a colorized diff.
  */
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 import type { DiffEntry } from '@rubenpari/dotenv-cli-shared';
 
 /**
@@ -18,9 +17,7 @@ import type { DiffEntry } from '@rubenpari/dotenv-cli-shared';
 export async function diffAction(env1: string, env2: string): Promise<void> {
   const localConfig = requireLocalConfig();
 
-  const spinner = ora('Comparing environments...').start();
-
-  try {
+  await withSpinner('Comparing environments...', async (spinner) => {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
     const { data: diff } = await api.get<DiffEntry[]>(
@@ -57,8 +54,5 @@ export async function diffAction(env1: string, env2: string): Promise<void> {
       console.log(`  ${key}${v1}${v2}`);
     }
     console.log();
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to diff')));
-    process.exit(1);
-  }
+  });
 }

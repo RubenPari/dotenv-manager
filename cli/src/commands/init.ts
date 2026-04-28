@@ -5,10 +5,9 @@
  */
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient } from '../api/client';
 import { readLocalConfig, writeLocalConfig, readCredentials } from '../config';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 import type { Project } from '@rubenpari/dotenv-cli-shared';
 
 /**
@@ -42,12 +41,9 @@ export async function initAction(opts: { project?: string }): Promise<void> {
     projectSlug = slug;
   }
 
-  const spinner = ora('Linking project...').start();
-
-  try {
+  await withSpinner('Linking project...', async (spinner) => {
     const api = getApiClient();
 
-    // Find project by slug
     const { data: projects } = await api.get<Project[]>('/api/v1/projects');
     const project = projects.find((p) => p.slug === projectSlug);
 
@@ -60,8 +56,5 @@ export async function initAction(opts: { project?: string }): Promise<void> {
     spinner.succeed(
       chalk.green(`Project "${projectSlug}" linked. Environments: dev, staging, prod`),
     );
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to link project')));
-    process.exit(1);
-  }
+  });
 }

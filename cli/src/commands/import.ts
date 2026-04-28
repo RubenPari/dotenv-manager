@@ -5,10 +5,9 @@
  */
 import fs from 'fs';
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 
 /**
  * `dm import <file>` action.
@@ -22,17 +21,13 @@ export async function importAction(file: string): Promise<void> {
     process.exit(1);
   }
 
-  const spinner = ora('Importing variables...').start();
   const content = fs.readFileSync(file, 'utf-8');
 
-  try {
+  await withSpinner('Importing variables...', async (spinner) => {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
     const { data } = await api.post(`/api/v1/projects/${projectId}/envs/dev/import`, { content });
 
     spinner.succeed(chalk.green(`${data.imported} variables imported`));
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to import')));
-    process.exit(1);
-  }
+  });
 }

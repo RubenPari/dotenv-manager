@@ -5,11 +5,10 @@
  */
 import fs from 'fs';
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { getActiveEnv } from '../config';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 import {
   parseDotenv,
   type VariableInput,
@@ -29,11 +28,10 @@ export async function pushAction(opts: { env?: string }): Promise<void> {
     process.exit(1);
   }
 
-  const spinner = ora('Syncing to backend...').start();
   const env = getActiveEnv(localConfig, opts.env);
+  const envConfig = parseDotenv(fs.readFileSync(envFile, 'utf-8'));
 
-  try {
-    const envConfig = parseDotenv(fs.readFileSync(envFile, 'utf-8'));
+  await withSpinner('Syncing to backend...', async (spinner) => {
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
 
     const variables: VariableInput[] = Object.entries(envConfig).map(([key, value]) => ({
@@ -48,13 +46,8 @@ export async function pushAction(opts: { env?: string }): Promise<void> {
     await api.put(`/api/v1/projects/${projectId}/envs/${env}`, variables);
 
     const secrets = variables.filter((v) => v.isSecret).length;
-    spinner.succeed(
-      chalk.green(`${variables.length} variables synchronized (${secrets} encrypted)`),
-    );
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to sync')));
-    process.exit(1);
-  }
+    spinner.succeed(chalk.green(`${variables.length} variables synchronized (${secrets} encrypted)`));
+  });
 }
 
 /**
@@ -63,11 +56,9 @@ export async function pushAction(opts: { env?: string }): Promise<void> {
  */
 export async function pullAction(opts: { env?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
-
-  const spinner = ora('Downloading variables...').start();
   const env = getActiveEnv(localConfig, opts.env);
 
-  try {
+  await withSpinner('Downloading variables...', async (spinner) => {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
     const { data: variables } = await api.get<VariableResponse[]>(
@@ -75,12 +66,8 @@ export async function pullAction(opts: { env?: string }): Promise<void> {
     );
 
     const content = variables.map((v) => `${v.key}=${v.value || ''}`).join('\n');
-
     fs.writeFileSync('.env', content + '\n');
 
     spinner.succeed(chalk.green(`${variables.length} variables downloaded to .env`));
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to pull')));
-    process.exit(1);
-  }
+  });
 }

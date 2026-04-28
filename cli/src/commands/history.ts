@@ -1,13 +1,12 @@
 /**
  * History command
  * @module cli/commands/history
- * @description Displays recent audit log entries for the active project/environment.
+ * @description Shows recent audit log entries for the current project.
  */
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 
 type AuditLog = { action: string; key: string; createdAt: string };
 
@@ -17,38 +16,26 @@ type AuditLog = { action: string; key: string; createdAt: string };
  */
 export async function historyAction(opts: { limit?: string }): Promise<void> {
   const localConfig = requireLocalConfig();
+  const limit = parseInt(opts.limit || '20', 10);
 
-  const spinner = ora('Loading history...').start();
-  const limit = parseInt(opts.limit || '20');
-
-  try {
+  await withSpinner('Loading history...', async (spinner) => {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
     const { data: logs } = await api.get<AuditLog[]>(
       `/api/v1/projects/${projectId}/envs/dev/history`,
-      { params: { limit } },
+      { params: { limit: String(limit) } },
     );
 
     spinner.stop();
     if (logs.length === 0) {
-      console.log(chalk.yellow('No changes recorded.'));
+      console.log(chalk.yellow('No history found.'));
       return;
     }
 
-    console.log(chalk.bold('\nRecent changes:\n'));
+    console.log(chalk.bold(`\nHistory (last ${logs.length}):\n`));
     for (const log of logs) {
-      const action =
-        log.action === 'CREATE'
-          ? chalk.green('+')
-          : log.action === 'DELETE'
-            ? chalk.red('-')
-            : chalk.yellow('~');
-      const date = new Date(log.createdAt).toLocaleString();
-      console.log(`  ${action} ${date.padEnd(25)} ${log.key}`);
+      console.log(`  ${chalk.gray(log.createdAt)}  ${log.action}  ${log.key}`);
     }
     console.log();
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to load history')));
-    process.exit(1);
-  }
+  });
 }

@@ -1,29 +1,31 @@
 /**
  * Export command
  * @module cli/commands/export
- * @description Exports environment variables from the backend in a given format.
+ * @description Exports variables from an environment to stdout or a file.
  */
 import fs from 'fs';
 import chalk from 'chalk';
-import ora from 'ora';
 import { getApiClient, getProjectIdBySlug } from '../api/client';
+import { getActiveEnv } from '../config';
 import { requireLocalConfig } from '../utils/requireLocalConfig';
-import { getErrorMessage } from '../utils/errors';
+import { withSpinner } from '../utils/withSpinner';
 
 /**
  * `dm export` action.
  * @param opts - Options provided by commander.
  */
-export async function exportAction(opts: { format?: string; output?: string }): Promise<void> {
+export async function exportAction(opts: {
+  format?: string;
+  output?: string;
+}): Promise<void> {
   const localConfig = requireLocalConfig();
-
-  const spinner = ora('Exporting variables...').start();
   const format = opts.format || 'env';
+  const env = getActiveEnv(localConfig);
 
-  try {
+  await withSpinner('Exporting variables...', async (spinner) => {
     const api = getApiClient();
     const projectId = await getProjectIdBySlug(localConfig.projectSlug);
-    const { data } = await api.get(`/api/v1/projects/${projectId}/envs/dev/export`, {
+    const { data } = await api.get(`/api/v1/projects/${projectId}/envs/${env}/export`, {
       params: { format },
     });
 
@@ -34,8 +36,5 @@ export async function exportAction(opts: { format?: string; output?: string }): 
       spinner.stop();
       console.log(data);
     }
-  } catch (error: unknown) {
-    spinner.fail(chalk.red(getErrorMessage(error, 'Failed to export')));
-    process.exit(1);
-  }
+  });
 }
