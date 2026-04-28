@@ -7,23 +7,19 @@ import axios, { AxiosInstance } from 'axios';
 import { readCredentials } from '../config';
 import type { Project } from '@rubenpari/dotenv-cli-shared';
 
-let apiClient: AxiosInstance | null = null;
-
 /**
- * Get an authenticated API client (cached).
+ * Create a fresh authenticated API client.
  * Adds `Authorization: Bearer <token>` when available.
  */
 export function getApiClient(): AxiosInstance {
-  if (apiClient) return apiClient;
-
-  apiClient = axios.create({
+  const api = axios.create({
     baseURL: readCredentials().apiUrl,
     headers: {
       'Content-Type': 'application/json',
     },
   });
 
-  apiClient.interceptors.request.use((reqConfig) => {
+  api.interceptors.request.use((reqConfig) => {
     const config = readCredentials();
     if (config.accessToken) {
       reqConfig.headers.Authorization = `Bearer ${config.accessToken}`;
@@ -31,7 +27,7 @@ export function getApiClient(): AxiosInstance {
     return reqConfig;
   });
 
-  apiClient.interceptors.response.use(
+  api.interceptors.response.use(
     (res) => res,
     async (error) => {
       if (error.response?.status === 401) {
@@ -41,7 +37,7 @@ export function getApiClient(): AxiosInstance {
     },
   );
 
-  return apiClient;
+  return api;
 }
 
 /**
