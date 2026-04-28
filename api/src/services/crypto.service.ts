@@ -5,8 +5,13 @@
  */
 import crypto from 'crypto';
 import { getConfig } from '../config';
+import { logger } from '../utils/logger';
 
 const config = getConfig();
+
+const PBKDF2_ITERATIONS = 310_000;
+const PBKDF2_KEYLEN = 32;
+const PBKDF2_DIGEST = 'sha256';
 
 interface EncryptedPayload {
   iv: string;
@@ -57,17 +62,30 @@ export function decryptVariable(encrypted: string): string {
 }
 
 /**
- * Derive an encryption key from `MASTER_KEY_PEPPER`.
- * In production this value must be set; in non-production a dev fallback is used.
+ * Derive an encryption key from `MASTER_KEY_PEPPER` and `MASTER_KEY_SALT`.
+ * In production both must be set. In dev/test, fallbacks are used with a warning.
  * @returns A 32-byte key buffer suitable for AES-256-GCM.
  */
 function deriveKey(): Buffer {
-  if (!config.MASTER_KEY_PEPPER) {
-    if (config.NODE_ENV === 'production') {
-      throw new Error('MASTER_KEY_PEPPER is required in production');
-    }
+  if (!config.MASTER_KEY_PEPPER && config.NODE_ENV === 'production') {
+    throw new Error('MASTER_KEY_PEPPER is required in production');
   }
 
-  const pepper = config.MASTER_KEY_PEPPER || 'dev-only-pepper';
-  return crypto.pbkdf2Sync(pepper, 'dotenv-manager-salt', 310000, 32, 'sha256');
+  const pepper = config.MASTER_KEY_PEPPER || generateDevPepper();
+  const salt = config.MASTER_KEY_SALT || 'dotenv-manager-salt';
+
+  if (!config.MASTER_KEY_PEPPER && config.NODE_ENV !== 'production') {
+    logger.warn('MASTER_KEY_PEPPER is not set; using a random dev-only pepper. Secrets will not persist across restarts.');
+  }
+
+  return crypto.pbkdf2Sync(pepper, salt, PBKDF2_ITERATIONS, PBKDF2_KEYLEN, PBKDF2_DIGEST);
+}
+
+/**
+ * Generate a random pepper for dev/test environments.
+ * This ensures each process restart uses a different key, making it
+ * obvious that dev secrets are not portable.
+ */
+function generateDevPepper(): string {
+  return crypto.randomBytes(16).toString('hex');
 }

@@ -18,6 +18,7 @@ const EnvSchema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
 
   MASTER_KEY_PEPPER: z.string().min(16).optional(),
+  MASTER_KEY_SALT: z.string().optional(),
 });
 
 type Env = z.infer<typeof EnvSchema>;
