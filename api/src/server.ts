@@ -6,13 +6,13 @@
 import type { Server } from 'http';
 import { createApp } from './app';
 import { getConfig } from './config';
+import { logger } from './utils/logger';
 
 export function startServer(): Server {
   const app = createApp();
   const config = getConfig();
 
   return app.listen(config.PORT, () => {
-    console.log(`API server running on port ${config.PORT}`);
+    logger.info(`API server running on port ${config.PORT}`);
   });
 }
-

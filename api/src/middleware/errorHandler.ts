@@ -5,11 +5,16 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { logger } from '../utils/logger';
 
 function isDatabaseUnavailableError(err: Error): boolean {
-  // Avoid a hard dependency on Prisma runtime types here; match by name/message.
-  // Prisma uses PrismaClientInitializationError for connection issues at startup/runtime.
+  // Prisma initialization errors (connection issues at startup/runtime)
   if (err.name === 'PrismaClientInitializationError') return true;
+  // Prisma known request errors for connection failures
+  if (err.name === 'PrismaClientKnownRequestError') {
+    const code = (err as Error & { code?: string }).code;
+    if (code === 'P1001' || code === 'P1003') return true;
+  }
   const msg = err.message ?? '';
   return msg.includes("Can't reach database server") || msg.includes('ECONNREFUSED');
 }
@@ -49,7 +54,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, _next: Nex
   }
 
   if (isDatabaseUnavailableError(err)) {
-    console.error('Database unavailable:', err);
+    logger.error('Database unavailable:', err);
     res.status(503).json({
       error: 'Database unavailable',
       hint: 'Start Postgres (docker compose up -d) and ensure DATABASE_URL points to it.',
@@ -57,6 +62,6 @@ export const errorHandler = (err: Error, req: Request, res: Response, _next: Nex
     return;
   }
 
-  console.error('Unexpected error:', err);
+  logger.error('Unexpected error:', err);
   res.status(500).json({ error: 'Internal server error' });
 };
